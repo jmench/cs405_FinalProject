@@ -136,5 +136,91 @@ public class API {
         return Response.ok(responseString)
                 .header("Access-Control-Allow-Origin", "*").build();
     } // exampleBDATE
+    
+    @GET
+    @Path("/createuser")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response createuser(@PathParam("handle") String handle, @PathParam("password") String password, @PathParam("fullname") String fullname, @PathParam("location") String location, @PathParam("xmail") String xmail, @PathParam("bdate") String bdate)  {
+        String responseString = "{\"status_code\":0}";
+        StringBuilder crunchifyBuilder = new StringBuilder();
+        try {
+            Map<String,String> teamMap = Launcher.dbEngine.createuser(handle, password, fullname, location, xmail, bdate);
+            responseString = Launcher.gson.toJson(teamMap);
+        } catch (Exception ex) {
+            StringWriter sw = new StringWriter();
+            ex.printStackTrace(new PrintWriter(sw));
+            String exceptionAsString = sw.toString();
+            ex.printStackTrace();
+            return Response.status(500).entity(exceptionAsString).build();
+        }
+        return Response.ok(responseString)
+                .header("Access-Control-Allow-Origin", "*").build();
+    }
+
+    @GET
+    @Path("/seeuser")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response seeuser(@PathParam("handle") String handle, @PathParam("password") String password)  {
+        String responseString = "{\"status_code\":0}";
+        StringBuilder crunchifyBuilder = new StringBuilder();
+        try {
+            Map<String,String> teamMap = Launcher.dbEngine.seeuser(handle, password);
+            responseString = Launcher.gson.toJson(teamMap);
+        } catch (Exception ex) {
+            StringWriter sw = new StringWriter();
+            ex.printStackTrace(new PrintWriter(sw));
+            String exceptionAsString = sw.toString();
+            ex.printStackTrace();
+            return Response.status(500).entity(exceptionAsString).build();
+        }
+        return Response.ok(responseString)
+                .header("Access-Control-Allow-Origin", "*").build();
+    } 
+
+    @GET
+    @Path("/suggestions")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response suggestions(@PathParam("handle") String handle, @PathParam("password") String password)  {
+        String responseString = "{\"status_code\":0}";
+        StringBuilder crunchifyBuilder = new StringBuilder();
+        try {
+            Map<String,String> teamMap = Launcher.dbEngine.suggestions(handle, password);
+            responseString = Launcher.gson.toJson(teamMap);
+        } catch (Exception ex) {
+            StringWriter sw = new StringWriter();
+            ex.printStackTrace(new PrintWriter(sw));
+            String exceptionAsString = sw.toString();
+            ex.printStackTrace();
+            return Response.status(500).entity(exceptionAsString).build();
+        }
+        return Response.ok(responseString)
+                .header("Access-Control-Allow-Origin", "*").build();
+    } 
+
+    @GET
+    @Path("/poststory")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response poststory(@PathParam("handle") String handle, @PathParam("password") String password, @PathParam("chapter") String chapter, @PathParam("url") String url)  {
+        String responseString = "{\"status_code\":0}";
+        StringBuilder crunchifyBuilder = new StringBuilder();
+        try {
+            Map<String,String> teamMap = Launcher.dbEngine.poststory(handle, password, chapter, url);
+            responseString = Launcher.gson.toJson(teamMap);
+        } catch (Exception ex) {
+            StringWriter sw = new StringWriter();
+            ex.printStackTrace(new PrintWriter(sw));
+            String exceptionAsString = sw.toString();
+            ex.printStackTrace();
+            return Response.status(500).entity(exceptionAsString).build();
+        }
+        return Response.ok(responseString)
+                .header("Access-Control-Allow-Origin", "*").build();
+    } 
+
+
+
+
+
+
 
 } // API.java
