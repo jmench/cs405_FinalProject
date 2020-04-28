@@ -160,9 +160,21 @@ public class DBEngine {
 	{
 	     Connection conn = ds.getConnection();
 	     String queryString = null;
-	     queryString = "INSERT INTO Identity VALUES(handle, password, fullname, location, xmail, bdate)";
+	     queryString = "INSERT INTO Identity (handle, password, fullname, location, email, bdate) VALUES(?, ?, ?, ?, ?, ?)";
 	     stmt = conn.prepareStatement(queryString);
-
+			stmt.setStr(1, handle);
+			stmt.setStr(2, password);
+			stmt.setStr(3, fullname);
+			stmt.setStr(4, location);
+			stmt.setStr(5, xmail);
+			stmt.setStr(6, bdate);
+	     
+	     ResultSet rs = stmt.executeQuery();
+	     while (rs.ext()){
+		String userId = Integet.toString(rs.getInt("idnum"));
+		userIdMap.put("status", userId);
+	     }
+	     rs.close();
  	     stmt.close();
 	     conn.close();
 	}
@@ -170,9 +182,10 @@ public class DBEngine {
 	{
 	    ex.printStackTrace();
 	}
+	return userIdMap;
     }
 	
-    public Map<String,String> seeuser(String handle, String password, String fullname, String location, String xmail, String bdate){
+    public Map<String,String> seeuser(String handle, String password){
 	Map<String,String> userIdMap = new HashMap<>();
 	
 	PreparedStatement stmt = null;
@@ -181,9 +194,17 @@ public class DBEngine {
 	{
 	     Connection conn = ds.getConnection();
 	     String queryString = null;
-	     queryString = "INSERT INTO Identity VALUES(handle, password, fullname, location, xmail, bdate)";
+	     queryString = "SELECT handle, fullname, location, email, bdate FROM Identity WHERE handle = ?";
 	     stmt = conn.prepareStatement(queryString);
+			stmt.setStr(1, handle);
 
+	     ResultSet rs = stmt.executeQuery();
+             //while (rs.next()) {
+                String userId = Integer.toString(rs.getInt("idnum"));
+                String userName = rs.getString("handle");
+                userIdMap.put(userId, userName);
+            }
+             rs.close();
  	     stmt.close();
 	     conn.close();
 	}
@@ -192,6 +213,7 @@ public class DBEngine {
 	    ex.printStackTrace();
 	}
     }         
+
 
 	
 	
