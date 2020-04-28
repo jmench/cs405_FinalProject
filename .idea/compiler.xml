@@ -6,8 +6,9 @@
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
-        <module name="cs405ProjectSample" />
+        <module name="cs405_FinalProject" />
         <module name="sample" />
+        <module name="cs405ProjectSample" />
       </profile>
     </annotationProcessing>
   </component>
