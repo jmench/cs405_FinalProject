@@ -150,5 +150,50 @@ public class DBEngine {
         }
         return userIdMap;
     } // getBDATE()
+  
+    public Map<String,String> createuser(String handle, String password, String fullname, String location, String xmail, String bdate){
+	Map<String,String> userIdMap = new HashMap<>();
+	
+	PreparedStatement stmt = null;
+
+	try
+	{
+	     Connection conn = ds.getConnection();
+	     String queryString = null;
+	     queryString = "INSERT INTO Identity VALUES(handle, password, fullname, location, xmail, bdate)";
+	     stmt = conn.prepareStatement(queryString);
+
+ 	     stmt.close();
+	     conn.close();
+	}
+	catch(Exception ex)
+	{
+	    ex.printStackTrace();
+	}
+    }
+	
+    public Map<String,String> seeuser(String handle, String password, String fullname, String location, String xmail, String bdate){
+	Map<String,String> userIdMap = new HashMap<>();
+	
+	PreparedStatement stmt = null;
+
+	try
+	{
+	     Connection conn = ds.getConnection();
+	     String queryString = null;
+	     queryString = "INSERT INTO Identity VALUES(handle, password, fullname, location, xmail, bdate)";
+	     stmt = conn.prepareStatement(queryString);
+
+ 	     stmt.close();
+	     conn.close();
+	}
+	catch(Exception ex)
+	{
+	    ex.printStackTrace();
+	}
+    }         
+
+	
+	
 
 } // class DBEngine
