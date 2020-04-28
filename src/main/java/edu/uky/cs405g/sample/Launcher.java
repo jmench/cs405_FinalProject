@@ -22,6 +22,7 @@ public class Launcher {
         gson = new Gson();
 
         //Database Client initialization
+        //May need to have your personal username and password here
         String DBuser = "jkme226";
         String DBpassword = "Goukgo69!";
         //for your laptop DBhost = "localhost", for your VM instance DBhost = [your account].cs.uky.edu
