@@ -175,8 +175,9 @@ public class API {
         }
         return Response.ok(responseString)
                 .header("Access-Control-Allow-Origin", "*").build();
-    } 
+    }
 
+    /*
     @GET
     @Path("/suggestions")
     @Produces(MediaType.APPLICATION_JSON)
@@ -215,7 +216,9 @@ public class API {
         }
         return Response.ok(responseString)
                 .header("Access-Control-Allow-Origin", "*").build();
-    } 
+    }
+
+     */
 
 
 
