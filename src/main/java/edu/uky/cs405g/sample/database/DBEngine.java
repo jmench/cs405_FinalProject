@@ -7,13 +7,11 @@ import org.apache.commons.pool2.ObjectPool;
 import org.apache.commons.pool2.impl.GenericObjectPool;
 
 import javax.sql.DataSource;
+import javax.swing.plaf.nimbus.State;
+import javax.xml.transform.Result;
 import java.io.PrintWriter;
 import java.io.StringWriter;
-import java.sql.Connection;
-import java.sql.ResultSet;
-import java.sql.SQLIntegrityConstraintViolationException;
-import java.sql.Statement;
-import java.sql.PreparedStatement;
+import java.sql.*;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -152,31 +150,36 @@ public class DBEngine {
         return userIdMap;
     } // getBDATE()
   
-    public Map<String,String> createuser(String handle, String password, String fullname, String location, String xmail, String bdate){
+    public Map<String,String> createuser(String handle, String pass, String fullname, String location, String xmail, String bdate){
         Map<String,String> userIdMap = new HashMap<>();
-        System.out.println("Made it in Create User");
 
         PreparedStatement stmt = null;
         try
         {
             Connection conn = ds.getConnection();
             String queryString = null;
-            queryString = "INSERT INTO Identity (handle, password, fullname, location, email, bdate) VALUES(?, ?, ?, ?, ?, ?)";
-            stmt = conn.prepareStatement(queryString);
+            queryString = "INSERT INTO Identity (handle, pass, fullname, location, email, bdate) VALUES(?, ?, ?, ?, ?, ?)";
+
+            stmt = conn.prepareStatement(queryString, Statement.RETURN_GENERATED_KEYS);
 			stmt.setString(1, handle);
-			stmt.setString(2, password);
+			stmt.setString(2, pass);
 			stmt.setString(3, fullname);
 			stmt.setString(4, location);
 			stmt.setString(5, xmail);
 			stmt.setString(6, bdate);
 
-			ResultSet rs = stmt.executeQuery();
+			Integer result = stmt.executeUpdate();
 
-			while (rs.next()) {
-		        String userId = Integer.toString(rs.getInt("idnum"));
-		        userIdMap.put("status", userId);
+			if (result == 0) {
+                throw new SQLException("Creating user failed, no rows affected.");
 			}
-			rs.close();
+			try (ResultSet userId = stmt.getGeneratedKeys()) {
+			    if(userId.next()) {
+			        String idNum = String.valueOf(userId.getInt(1));
+			        userIdMap.put("status", idNum);
+                }
+            }
+
 			stmt.close();
 			conn.close();
 	    }
@@ -201,6 +204,7 @@ public class DBEngine {
 			stmt.setString(1, handle);
 
 	     ResultSet rs = stmt.executeQuery();
+
              //while (rs.next()) {
                 String userId = Integer.toString(rs.getInt("idnum"));
                 String userName = rs.getString("handle");
