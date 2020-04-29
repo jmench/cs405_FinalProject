@@ -418,4 +418,65 @@ public class DBEngine {
         return userIdMap;
     } // reprint()
 
+    public Map<String,String> poststory(String handle, String pass, String chapter, String url, String expires){
+        Map<String,String> userIdMap = new LinkedHashMap<>();
+
+        // See if current user even exists
+        Integer currUser = isCorrectCredentials(handle, pass);
+        // If user does not exist, return the error
+        if (currUser == -10) {
+            userIdMap.put("status_code", Integer.toString(currUser));
+            userIdMap.put("error", "invalid credentials");
+            return userIdMap;
+        }
+
+        //See if chapter is empty
+        if (chapter == null) {
+            userIdMap.put("status", "0");
+            userIdMap.put("error", "missing chapter");
+            return userIdMap;
+        }
+        else {
+            PreparedStatement stmt = null;
+            try
+            {
+                Connection conn = ds.getConnection();
+                String queryString = null;
+                queryString = "INSERT INTO Story (idnum, chapter, url, expires) VALUES(?, ?, ?, ?)";
+
+                stmt = conn.prepareStatement(queryString, Statement.RETURN_GENERATED_KEYS);
+                stmt.setString(1, Integer.toString(currUser));
+                stmt.setString(2, chapter);
+                stmt.setString(3, url);
+                stmt.setString(4, expires);
+
+                Integer result = stmt.executeUpdate();
+
+                if (result == 0) {
+                    System.out.println("Failed to post story...");
+                    userIdMap.put("status", "-2");
+                    userIdMap.put("error", "SQL Constraint Exception");
+                }
+
+                try (ResultSet userId = stmt.getGeneratedKeys()) {
+                    if(userId.next()) {
+                        System.out.println("Successfully posted story!");
+                        userIdMap.put("status", "1");
+                    }
+                }
+
+                stmt.close();
+                conn.close();
+            }
+            catch(Exception ex)
+            {
+                ex.printStackTrace();
+                System.out.println("Failed to post story...");
+                userIdMap.put("status", "0");
+                userIdMap.put("error", "invalid expires date");
+            }
+        }
+        return userIdMap;
+    } // poststory()
+
 } // class DBEngine

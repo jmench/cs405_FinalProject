@@ -262,6 +262,8 @@ public class API {
                 .header("Access-Control-Allow-Origin", "*").build();
     }
 
+     */
+
 
     // curl -d '{"handle":"@cooldude42", "password":"mysecret!", "chapter":"I ate at Mario's!", "url":"http://imagesite.dne/marios.jpg"}'
     // -H "Content-Type: application/json"
@@ -269,14 +271,33 @@ public class API {
     //
     // {"status":"1"}
     // {"status":"0", "error":"invalid expires date"}
-    @GET
+    @POST
     @Path("/poststory")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response poststory(@PathParam("handle") String handle, @PathParam("password") String password, @PathParam("chapter") String chapter, @PathParam("url") String url)  {
+    @Consumes(MediaType.APPLICATION_JSON)
+    public Response poststory(InputStream inputData)  {
         String responseString = "{\"status_code\":0}";
         StringBuilder crunchifyBuilder = new StringBuilder();
         try {
-            Map<String,String> teamMap = Launcher.dbEngine.poststory(handle, password, chapter, url);
+            // Here its is parsing the input into a JSon string
+            BufferedReader in = new BufferedReader(new InputStreamReader(inputData));
+            String line = null;
+            while ((line=in.readLine()) != null) {
+                crunchifyBuilder.append(line);
+            }
+            String jsonString = crunchifyBuilder.toString();
+
+            // Create a map of the jsonString in format {handle=@cooldude42, password=mysecret!, chapter=First Story, url=...}
+            Map<String, String> myMap = gson.fromJson(jsonString, mapType);
+
+            // Create strings to get values from the map
+            String handle = myMap.get("handle");
+            String pass = myMap.get("password");
+            String chapter = myMap.get("chapter");
+            String url = myMap.get("url");
+            String expires = myMap.get("expires");
+
+            Map<String,String> teamMap = Launcher.dbEngine.poststory(handle, pass, chapter, url, expires);
             responseString = Launcher.gson.toJson(teamMap);
         } catch (Exception ex) {
             StringWriter sw = new StringWriter();
@@ -287,7 +308,7 @@ public class API {
         }
         return Response.ok(responseString)
                 .header("Access-Control-Allow-Origin", "*").build();
-    } */
+    }
 
     // curl -d '{"handle":"@cooldude42", "password":"mysecret!", "likeit":true}'
     // -H "Content-Type: application/json"
