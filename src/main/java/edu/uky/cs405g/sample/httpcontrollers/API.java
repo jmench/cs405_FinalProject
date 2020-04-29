@@ -260,7 +260,8 @@ public class API {
         }
         return Response.ok(responseString)
                 .header("Access-Control-Allow-Origin", "*").build();
-    } 
+    }
+
 
     // curl -d '{"handle":"@cooldude42", "password":"mysecret!", "chapter":"I ate at Mario's!", "url":"http://imagesite.dne/marios.jpg"}'
     // -H "Content-Type: application/json"
@@ -286,7 +287,7 @@ public class API {
         }
         return Response.ok(responseString)
                 .header("Access-Control-Allow-Origin", "*").build();
-    }
+    } */
 
     // curl -d '{"handle":"@cooldude42", "password":"mysecret!", "likeit":true}'
     // -H "Content-Type: application/json"
@@ -294,16 +295,33 @@ public class API {
     //
     // {"status":"1"}
     // {"status":"0", "error":"blocked"}
-    //  {"status":"0", "error":"story not found"}
-    @GET
-    @Path("/reprint")
+    // {"status":"0", "error":"story not found"}
+    @POST
+    @Path("/reprint/{sidnum}")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response reprint(@PathParam("handle") String handle, @PathParam("password") String password, @PathParam("likeit") String likeit)  {
+    @Consumes(MediaType.APPLICATION_JSON)
+    public Response reprint(InputStream inputData, @PathParam("sidnum") String sidnum)  {
         String responseString = "{\"status_code\":0}";
         StringBuilder crunchifyBuilder = new StringBuilder();
         try {
-            Map<String,String> teamMap = Launcher.dbEngine.reprint(handle, password, likeit);
+            // Here its is parsing the input into a JSon string
+            BufferedReader in = new BufferedReader(new InputStreamReader(inputData));
+            String line = null;
+            while ((line=in.readLine()) != null) {
+                crunchifyBuilder.append(line);
+            }
+            String jsonString = crunchifyBuilder.toString();
+
+            // Create a map of the jsonString in format {handle=@cooldude42, password=mysecret!, likeit=true}
+            Map<String, String> myMap = gson.fromJson(jsonString, mapType);
+
+            // Create strings to get values from the map
+            String handle = myMap.get("handle");
+            String pass = myMap.get("password");
+            String likeit = myMap.get("likeit");
+            Map<String,String> teamMap = Launcher.dbEngine.reprint(handle, pass, likeit, sidnum);
             responseString = Launcher.gson.toJson(teamMap);
+
         } catch (Exception ex) {
             StringWriter sw = new StringWriter();
             ex.printStackTrace(new PrintWriter(sw));
@@ -315,6 +333,7 @@ public class API {
                 .header("Access-Control-Allow-Origin", "*").build();
     } 
 
+    /*
     // Input: curl -d '{"handle":"@cooldude42", "password":"mysecret!"}' -H "Content-Type: application/json" -X POST http://localhost:9990/api/follow/2 (Links to an external site.)
     // 2 = Identity.idnum
     // Output: {"status":"1"}
