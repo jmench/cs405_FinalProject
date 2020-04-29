@@ -6,6 +6,7 @@ import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import edu.uky.cs405g.sample.Launcher;
 
+import javax.print.attribute.standard.Media;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
@@ -354,19 +355,35 @@ public class API {
                 .header("Access-Control-Allow-Origin", "*").build();
     } 
 
-    /*
+
     // Input: curl -d '{"handle":"@cooldude42", "password":"mysecret!"}' -H "Content-Type: application/json" -X POST http://localhost:9990/api/follow/2 (Links to an external site.)
     // 2 = Identity.idnum
     // Output: {"status":"1"}
     // Output: {"status":"0", "error":"blocked"}
-    @GET
-    @Path("/follow")
+    @POST
+    @Path("/follow/{idnum}")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response follow(@PathParam("handle") String handle, @PathParam("password") String password)  {
+    @Consumes(MediaType.APPLICATION_JSON)
+    public Response follow(InputStream inputData, @PathParam("idnum") String idnum)  {
         String responseString = "{\"status_code\":0}";
         StringBuilder crunchifyBuilder = new StringBuilder();
         try {
-            Map<String,String> teamMap = Launcher.dbEngine.follow(handle, password);
+            // Here its is parsing the input into a JSon string
+            BufferedReader in = new BufferedReader(new InputStreamReader(inputData));
+            String line = null;
+            while ((line=in.readLine()) != null) {
+                crunchifyBuilder.append(line);
+            }
+            String jsonString = crunchifyBuilder.toString();
+
+            // Create a map of the jsonString in format {handle=@cooldude42, password=mysecret!}
+            Map<String, String> myMap = gson.fromJson(jsonString, mapType);
+
+            // Create strings to get values from the map
+            String handle = myMap.get("handle");
+            String pass = myMap.get("password");
+
+            Map<String,String> teamMap = Launcher.dbEngine.follow(handle, pass, idnum);
             responseString = Launcher.gson.toJson(teamMap);
         } catch (Exception ex) {
             StringWriter sw = new StringWriter();
@@ -383,14 +400,30 @@ public class API {
     // 2 = Identity.idnum
     // Output: {"status":"1"}
     // Output: {"status":"0", "error":"not currently followed"}
-    @GET
-    @Path("/unfollow")
+    @POST
+    @Path("/unfollow/{idnum}")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response unfollow(@PathParam("handle") String handle, @PathParam("password") String password)  {
+    @Consumes(MediaType.APPLICATION_JSON)
+    public Response unfollow(InputStream inputData, @PathParam("idnum") String idnum)  {
         String responseString = "{\"status_code\":0}";
         StringBuilder crunchifyBuilder = new StringBuilder();
         try {
-            Map<String,String> teamMap = Launcher.dbEngine.unfollow(handle, password);
+            // Here its is parsing the input into a JSon string
+            BufferedReader in = new BufferedReader(new InputStreamReader(inputData));
+            String line = null;
+            while ((line=in.readLine()) != null) {
+                crunchifyBuilder.append(line);
+            }
+            String jsonString = crunchifyBuilder.toString();
+
+            // Create a map of the jsonString in format {handle=@cooldude42, password=mysecret!}
+            Map<String, String> myMap = gson.fromJson(jsonString, mapType);
+
+            // Create strings to get values from the map
+            String handle = myMap.get("handle");
+            String pass = myMap.get("password");
+
+            Map<String,String> teamMap = Launcher.dbEngine.unfollow(handle, pass, idnum);
             responseString = Launcher.gson.toJson(teamMap);
         } catch (Exception ex) {
             StringWriter sw = new StringWriter();
@@ -403,18 +436,35 @@ public class API {
                 .header("Access-Control-Allow-Origin", "*").build();
     }
 
+
     // Input: curl -d '{"handle":"@cooldude42", "password":"mysecret!"}' -H "Content-Type: application/json" -X POST http://localhost:9990/api/block/2 (Links to an external site.)
     // 2 = Identity.idnum
     // Output: {"status":"1"}
     // Output: {"status":"0", "error":"DNE"}
-    @GET
-    @Path("/block")
+    @POST
+    @Path("/block/{idnum}")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response block(@PathParam("handle") String handle, @PathParam("password") String password)  {
+    @Consumes(MediaType.APPLICATION_JSON)
+    public Response block(InputStream inputData, @PathParam("idnum") String idnum)  {
         String responseString = "{\"status_code\":0}";
         StringBuilder crunchifyBuilder = new StringBuilder();
         try {
-            Map<String,String> teamMap = Launcher.dbEngine.block(handle, password);
+            // Here its is parsing the input into a JSon string
+            BufferedReader in = new BufferedReader(new InputStreamReader(inputData));
+            String line = null;
+            while ((line=in.readLine()) != null) {
+                crunchifyBuilder.append(line);
+            }
+            String jsonString = crunchifyBuilder.toString();
+
+            // Create a map of the jsonString in format {handle=@cooldude42, password=mysecret!}
+            Map<String, String> myMap = gson.fromJson(jsonString, mapType);
+
+            // Create strings to get values from the map
+            String handle = myMap.get("handle");
+            String pass = myMap.get("password");
+
+            Map<String,String> teamMap = Launcher.dbEngine.block(handle, pass, idnum);
             responseString = Launcher.gson.toJson(teamMap);
         } catch (Exception ex) {
             StringWriter sw = new StringWriter();
@@ -425,7 +475,9 @@ public class API {
         }
         return Response.ok(responseString)
                 .header("Access-Control-Allow-Origin", "*").build();
-    } 
+    }
+
+    /*
     // Input: curl -d '{"handle":"@cooldude42", "password":"mysecret!", "newest":"2020-04-02 15:33:59", "oldest":"2020-03-29 00:00:01"}' -H "Content-Type: application/json" -X POST http://localhost:9990/api/timeline (Links to an external site.)
     //
     // This is the most complicated API. You'll need a single SQL statement to get

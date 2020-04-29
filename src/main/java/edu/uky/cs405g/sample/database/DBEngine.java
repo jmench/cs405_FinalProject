@@ -120,6 +120,40 @@ public class DBEngine {
         return userId;
     }
 
+    // This will return 1 if the user is already following
+    // Returns 0 if user is not following
+    public int doesUserFollow(Integer currUser, Integer follow) {
+        System.out.println("Check to see if user is already following");
+        Integer follows = 0;
+        PreparedStatement stmt = null;
+
+        try {
+            Connection conn = ds.getConnection();
+            String queryString = null;
+            // Query the DB to retrieve the id of the possible user
+            queryString = "SELECT * FROM Follows where follower = ? and followed = ?";
+            stmt = conn.prepareStatement(queryString);
+
+            stmt.setString(1, Integer.toString(currUser));
+            stmt.setString(2, Integer.toString(follow));
+
+            ResultSet rs = stmt.executeQuery();
+
+            if (rs.next()) {
+                System.out.println("User already being followed!");
+                follows = 1;
+            }
+            rs.close();
+            stmt.close();
+            conn.close();
+        }
+        catch(Exception ex)
+        {
+            ex.printStackTrace();
+        }
+        return follows;
+    }
+
     // This will return the idnum of the story's publisher
     // Returns 0 if story does not exist
     public int doesStoryExist(String sidnum) {
@@ -156,7 +190,7 @@ public class DBEngine {
 
     // This will return the 1 if the current user is blocked by publisher
     // Returns 0 if not blocked
-    public int isUserBlocked(Integer publisherId, Integer currUser) {
+    public int isUserBlocked(Integer blocker, Integer blocking) {
         System.out.println("Checking if current user is blocked...");
         Integer isBlocked = 0;
         PreparedStatement stmt = null;
@@ -168,8 +202,8 @@ public class DBEngine {
             queryString = "SELECT blknum FROM Block where idnum = ? and blocked = ?";
             stmt = conn.prepareStatement(queryString);
 
-            stmt.setString(1,Integer.toString(publisherId));
-            stmt.setString(2,Integer.toString(currUser));
+            stmt.setString(1,Integer.toString(blocker));
+            stmt.setString(2,Integer.toString(blocking));
 
             ResultSet rs = stmt.executeQuery();
 
@@ -251,7 +285,7 @@ public class DBEngine {
     } // getBDATE()
   
     public Map<String,String> createuser(String handle, String pass, String fullname, String location, String xmail, String bdate){
-        Map<String,String> userIdMap = new HashMap<>();
+        Map<String,String> userIdMap = new LinkedHashMap<>();
 
         PreparedStatement stmt = null;
         try
@@ -289,7 +323,10 @@ public class DBEngine {
 	    }
 	    catch(Exception ex)
 	    {
-	    ex.printStackTrace();
+	        ex.printStackTrace();
+            System.out.println("Failed to create user...");
+            userIdMap.put("status", "-2");
+            userIdMap.put("error", "SQL Constraint Exception");
 	    }
 	    return userIdMap;
     } // createuser()
@@ -298,11 +335,18 @@ public class DBEngine {
 	Map<String,String> userIdMap = new LinkedHashMap<>();
 
     // See if current user even exists
-    Integer userExists = isCorrectCredentials(handle, password);
+    Integer currUser = isCorrectCredentials(handle, password);
     // If user does not exist, return the error
-    if (userExists == -10) {
-        userIdMap.put("status_code", Integer.toString(userExists));
+    if (currUser == -10) {
+        userIdMap.put("status_code", Integer.toString(currUser));
         userIdMap.put("error", "invalid credentials");
+    }
+
+    // See if current user is blocked by story publisher
+    Integer isBlocked = isUserBlocked(Integer.parseInt(idnum), currUser);
+    // if the user is blocked, return nothing (User cant see if blocked or doesn't exist)
+    if (isBlocked == 1) {
+        return userIdMap;
     }
     // Else attempt to fetch specified idnum info
     else {
@@ -362,7 +406,7 @@ public class DBEngine {
         }
         // See if story exists
         Integer publisherId = doesStoryExist(sidnum);
-        // If story does not exist, return the erro
+        // If story does not exist, return the error
         if (publisherId == 0) {
             userIdMap.put("status_code", Integer.toString(publisherId));
             userIdMap.put("error", "story not found");
@@ -379,6 +423,9 @@ public class DBEngine {
         // Else user exists, story exists, and not blocked, so attempt to like the story
         else {
             System.out.println("Liking user story...");
+            // Create integer value for "likeit"
+            // likeVal = 0 -> Retweet (false)
+            // likeVal = 1 -> Like (true)
             Integer likeVal = 0;
             if (likeit.equals("true")) {
                 likeVal = 1;
@@ -478,5 +525,175 @@ public class DBEngine {
         }
         return userIdMap;
     } // poststory()
+
+    public Map<String,String> follow(String handle, String pass, String idnum){
+        Map<String,String> userIdMap = new LinkedHashMap<>();
+
+        // See if current user even exists
+        Integer currUser = isCorrectCredentials(handle, pass);
+        // If user does not exist, return the error
+        if (currUser == -10) {
+            userIdMap.put("status_code", Integer.toString(currUser));
+            userIdMap.put("error", "invalid credentials");
+            return userIdMap;
+        }
+        // See if current user is blocked by followee
+        Integer isBlocked = isUserBlocked(Integer.parseInt(idnum), currUser);
+        // if the user is blocked, return the error
+        if (isBlocked == 1) {
+            userIdMap.put("status_code", "0");
+            userIdMap.put("error", "blocked");
+            return userIdMap;
+        }
+        // See if current user is blocked by followee
+        Integer follows = doesUserFollow(currUser, Integer.parseInt(idnum));
+        // if the user is blocked, return the error
+        if (follows == 1) {
+            userIdMap.put("status_code", "0");
+            userIdMap.put("error", "user already followed");
+        }
+        // Else user is verified and not blocked and doesnt already follow
+        else {
+            PreparedStatement stmt = null;
+            try
+            {
+                Connection conn = ds.getConnection();
+                String queryString = null;
+                queryString = "INSERT INTO Follows (follower, followed) VALUES(?, ?)";
+
+                stmt = conn.prepareStatement(queryString);
+                stmt.setString(1, Integer.toString(currUser));
+                stmt.setString(2, idnum);
+
+                Integer result = stmt.executeUpdate();
+
+                if (result == 0) {
+                    System.out.println("Failed to follow user...");
+                    userIdMap.put("status", "0");
+                    userIdMap.put("error", "User already being followed");
+                } else {
+                    System.out.println("Successfully followed user!");
+                    userIdMap.put("status", "1");
+                }
+
+                stmt.close();
+                conn.close();
+            }
+            catch(Exception ex)
+            {
+                ex.printStackTrace();
+                System.out.println("Failed to follow user...");
+                userIdMap.put("status", "0");
+                userIdMap.put("error", "user does not exist");
+            }
+        }
+        return userIdMap;
+    } // follow()
+
+    public Map<String,String> unfollow(String handle, String pass, String idnum){
+        Map<String,String> userIdMap = new LinkedHashMap<>();
+
+        // See if current user even exists
+        Integer currUser = isCorrectCredentials(handle, pass);
+        // If user does not exist, return the error
+        if (currUser == -10) {
+            userIdMap.put("status_code", Integer.toString(currUser));
+            userIdMap.put("error", "invalid credentials");
+            return userIdMap;
+        }
+        // Else user is verified
+        else {
+            PreparedStatement stmt = null;
+            try
+            {
+                Connection conn = ds.getConnection();
+                String queryString = null;
+                queryString = "DELETE FROM Follows where follower = ? and followed = ?";
+
+                stmt = conn.prepareStatement(queryString);
+                stmt.setString(1, Integer.toString(currUser));
+                stmt.setString(2, idnum);
+
+                Integer result = stmt.executeUpdate();
+
+                if (result == 0) {
+                    System.out.println("Failed to unfollow user...");
+                    userIdMap.put("status", "0");
+                    userIdMap.put("error", "Not following user");
+                } else {
+                    System.out.println("Successfully followed user!");
+                    userIdMap.put("status", "1");
+                }
+
+                stmt.close();
+                conn.close();
+            }
+            catch(Exception ex)
+            {
+                ex.printStackTrace();
+                System.out.println("Failed to unfollow user...");
+                userIdMap.put("status", "0");
+                userIdMap.put("error", "user does not exist");
+            }
+        }
+        return userIdMap;
+    } // unfollow()
+
+    public Map<String,String> block(String handle, String pass, String idnum){
+        Map<String,String> userIdMap = new LinkedHashMap<>();
+
+        // See if current user even exists
+        Integer currUser = isCorrectCredentials(handle, pass);
+        // If user does not exist, return the error
+        if (currUser == -10) {
+            userIdMap.put("status_code", Integer.toString(currUser));
+            userIdMap.put("error", "invalid credentials");
+            return userIdMap;
+        }
+        // See if current user is already blocking the new user
+        Integer isBlocked = isUserBlocked(currUser, Integer.parseInt(idnum));
+        // if the user is blocked, return the error
+        if (isBlocked == 1) {
+            userIdMap.put("status_code", "0");
+            userIdMap.put("error", "already blocked user");
+            return userIdMap;
+        }
+        // Else user is verified
+        else {
+            PreparedStatement stmt = null;
+            try
+            {
+                Connection conn = ds.getConnection();
+                String queryString = null;
+                queryString = "INSERT INTO Block (idnum, blocked) VALUES (?, ?)";
+
+                stmt = conn.prepareStatement(queryString);
+                stmt.setString(1, Integer.toString(currUser));
+                stmt.setString(2, idnum);
+
+                Integer result = stmt.executeUpdate();
+
+                if (result == 0) {
+                    System.out.println("Failed to block user...");
+                    userIdMap.put("status", "0");
+                    userIdMap.put("error", "DNE");
+                } else {
+                    System.out.println("Successfully blocked user!");
+                    userIdMap.put("status", "1");
+                }
+
+                stmt.close();
+                conn.close();
+            }
+            catch(Exception ex)
+            {
+                ex.printStackTrace();
+                System.out.println("Failed to block user...");
+                userIdMap.put("status", "0");
+                userIdMap.put("error", "user does not exist");
+            }
+        }
+        return userIdMap;
+    } // block()
 
 } // class DBEngine
