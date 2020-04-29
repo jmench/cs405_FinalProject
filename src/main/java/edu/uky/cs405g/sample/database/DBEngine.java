@@ -202,11 +202,14 @@ public class DBEngine {
 			Integer result = stmt.executeUpdate();
 
 			if (result == 0) {
+			    System.out.println("Failed to create user...");
                 userIdMap.put("status", "-2");
                 userIdMap.put("error", "SQL Constraint Exception");
 			}
+
 			try (ResultSet userId = stmt.getGeneratedKeys()) {
 			    if(userId.next()) {
+			        System.out.println("Creating new user with idnum: " + Integer.toString(userId.getInt(1)));
 			        String idNum = String.valueOf(userId.getInt(1));
 			        userIdMap.put("status", idNum);
                 }
@@ -231,7 +234,9 @@ public class DBEngine {
     if (userExists == -10) {
         userIdMap.put("status_code", Integer.toString(userExists));
         userIdMap.put("error", "invalid credentials");
-    } else {
+    }
+    // Else attempt to fetch specified idnum info
+    else {
         System.out.println("Printing user info at specified idnum...");
         PreparedStatement stmt = null;
 
@@ -239,12 +244,14 @@ public class DBEngine {
         {
             Connection conn = ds.getConnection();
             String queryString = null;
+            // Get all information of user with idnum
             queryString = "SELECT handle, fullname, location, email, bdate, joined FROM Identity WHERE idnum = ?";
             stmt = conn.prepareStatement(queryString);
             stmt.setString(1, idnum);
 
             ResultSet rs = stmt.executeQuery();
 
+            // Place all user info into Map to return to API
             while (rs.next()) {
                 String userHandle = rs.getString("handle");
                 String userFullName = rs.getString("fullname");
