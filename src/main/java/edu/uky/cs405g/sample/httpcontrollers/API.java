@@ -141,17 +141,43 @@ public class API {
     //     -H "Content-Type: application/json"
     //     -X POST http://localhost:9990/api/createuser
     //
-    //{"status_code":4} where integer is idnum of new user
+    //{"status_code":"4"} where number is idnum of new user
     @POST
     @Path("/createuser")
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response createuser(@PathParam("handle") String handle, @PathParam("password") String password, @PathParam("fullname") String fullname, @PathParam("location") String location, @PathParam("xmail") String xmail, @PathParam("bdate") String bdate)  {
+    public Response createuser(InputStream inputData)  {
+        // responseString is what will print out on the terminal after the api call
+        // Gets modified in the DBEngine file
         String responseString = "{\"status\":0}";
+
+        //This string reads the input from the curl call
         StringBuilder crunchifyBuilder = new StringBuilder();
         try {
-            Map<String,String> teamMap = Launcher.dbEngine.createuser(handle, password, fullname, location, xmail, bdate);
+            // Here its is parsing the input into a JSon string
+            BufferedReader in = new BufferedReader(new InputStreamReader(inputData));
+            String line = null;
+            while ((line=in.readLine()) != null) {
+                crunchifyBuilder.append(line);
+            }
+            String jsonString = crunchifyBuilder.toString();
+
+            // Create a map of the jsonString in format {handle=@cooldude42, password=mysecret!,...}
+            Map<String, String> myMap = gson.fromJson(jsonString, mapType);
+
+            // Create strings to get values from the map
+            String handle = myMap.get("handle");
+            String pass = myMap.get("password");
+            String fullname = myMap.get("fullname");
+            String location = myMap.get("location");
+            String xmail = myMap.get("xmail");
+            String bdate = myMap.get("bdate");
+
+            // Call the function in DBEngine that adds to the databas
+            Map<String,String> teamMap = Launcher.dbEngine.createuser(handle, pass, fullname, location, xmail, bdate);
+            // Turn Map returned from DBEngine to JSON for output
             responseString = Launcher.gson.toJson(teamMap);
+
         } catch (Exception ex) {
             StringWriter sw = new StringWriter();
             ex.printStackTrace(new PrintWriter(sw));
@@ -163,14 +189,37 @@ public class API {
                 .header("Access-Control-Allow-Origin", "*").build();
     }
 
-    @GET
-    @Path("/seeuser")
+    // curl -d '{"handle":"@cooldude42", "password":"mysecret!"}'
+    // -H "Content-Type: application/json"
+    // -X POST http://localhost:9990/api/seeuser/2
+    //
+    // Output: {"status":"1", "handle":"@carlos", "fullname":"Carlos Mize", "location":"Kentucky", "email":"carlos@notgmail.com", "bdate":"1970-01-26","joined":"2020-04-01"}
+    @POST
+    @Path("/seeuser/{idnum}")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response seeuser(@PathParam("handle") String handle, @PathParam("password") String password)  {
+    @Consumes(MediaType.APPLICATION_JSON)
+    public Response seeuser(InputStream inputData, @PathParam("idnum") String idnum)  {
         String responseString = "{\"status_code\":0}";
+
+        //This string reads the input from the curl call
         StringBuilder crunchifyBuilder = new StringBuilder();
         try {
-            Map<String,String> teamMap = Launcher.dbEngine.seeuser(handle, password);
+            // Here its is parsing the input into a JSon string
+            BufferedReader in = new BufferedReader(new InputStreamReader(inputData));
+            String line = null;
+            while ((line=in.readLine()) != null) {
+                crunchifyBuilder.append(line);
+            }
+            String jsonString = crunchifyBuilder.toString();
+
+            // Create a map of the jsonString in format {handle=@cooldude42, password=mysecret!}
+            Map<String, String> myMap = gson.fromJson(jsonString, mapType);
+
+            // Create strings to get values from the map
+            String handle = myMap.get("handle");
+            String pass = myMap.get("password");
+
+            Map<String,String> teamMap = Launcher.dbEngine.seeuser(handle, pass, idnum);
             responseString = Launcher.gson.toJson(teamMap);
         } catch (Exception ex) {
             StringWriter sw = new StringWriter();
