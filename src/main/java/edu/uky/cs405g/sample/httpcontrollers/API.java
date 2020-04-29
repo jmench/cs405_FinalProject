@@ -224,6 +224,107 @@ public class API {
                 .header("Access-Control-Allow-Origin", "*").build();
     }
 
+    @GET
+    @Path("/reprint")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response reprint(@PathParam("handle") String handle, @PathParam("password") String password, @PathParam("likeit") String likeit)  {
+        String responseString = "{\"status_code\":0}";
+        StringBuilder crunchifyBuilder = new StringBuilder();
+        try {
+            Map<String,String> teamMap = Launcher.dbEngine.reprint(handle, password, likeit);
+            responseString = Launcher.gson.toJson(teamMap);
+        } catch (Exception ex) {
+            StringWriter sw = new StringWriter();
+            ex.printStackTrace(new PrintWriter(sw));
+            String exceptionAsString = sw.toString();
+            ex.printStackTrace();
+            return Response.status(500).entity(exceptionAsString).build();
+        }
+        return Response.ok(responseString)
+                .header("Access-Control-Allow-Origin", "*").build();
+    } 
+
+    @GET
+    @Path("/follow")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response follow(@PathParam("handle") String handle, @PathParam("password") String password)  {
+        String responseString = "{\"status_code\":0}";
+        StringBuilder crunchifyBuilder = new StringBuilder();
+        try {
+            Map<String,String> teamMap = Launcher.dbEngine.follow(handle, password);
+            responseString = Launcher.gson.toJson(teamMap);
+        } catch (Exception ex) {
+            StringWriter sw = new StringWriter();
+            ex.printStackTrace(new PrintWriter(sw));
+            String exceptionAsString = sw.toString();
+            ex.printStackTrace();
+            return Response.status(500).entity(exceptionAsString).build();
+        }
+        return Response.ok(responseString)
+                .header("Access-Control-Allow-Origin", "*").build();
+    } 
+
+    @GET
+    @Path("/unfollow")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response unfollow(@PathParam("handle") String handle, @PathParam("password") String password)  {
+        String responseString = "{\"status_code\":0}";
+        StringBuilder crunchifyBuilder = new StringBuilder();
+        try {
+            Map<String,String> teamMap = Launcher.dbEngine.unfollow(handle, password);
+            responseString = Launcher.gson.toJson(teamMap);
+        } catch (Exception ex) {
+            StringWriter sw = new StringWriter();
+            ex.printStackTrace(new PrintWriter(sw));
+            String exceptionAsString = sw.toString();
+            ex.printStackTrace();
+            return Response.status(500).entity(exceptionAsString).build();
+        }
+        return Response.ok(responseString)
+                .header("Access-Control-Allow-Origin", "*").build();
+    }
+
+    @GET
+    @Path("/block")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response block(@PathParam("handle") String handle, @PathParam("password") String password)  {
+        String responseString = "{\"status_code\":0}";
+        StringBuilder crunchifyBuilder = new StringBuilder();
+        try {
+            Map<String,String> teamMap = Launcher.dbEngine.block(handle, password);
+            responseString = Launcher.gson.toJson(teamMap);
+        } catch (Exception ex) {
+            StringWriter sw = new StringWriter();
+            ex.printStackTrace(new PrintWriter(sw));
+            String exceptionAsString = sw.toString();
+            ex.printStackTrace();
+            return Response.status(500).entity(exceptionAsString).build();
+        }
+        return Response.ok(responseString)
+                .header("Access-Control-Allow-Origin", "*").build();
+    } 
+
+    @GET
+    @Path("/timeline")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response timeline(@PathParam("handle") String handle, @PathParam("password") String password, @PathParam("newest") String newest, @PathParam("oldest") String oldest)  {
+        String responseString = "{\"status_code\":0}";
+        StringBuilder crunchifyBuilder = new StringBuilder();
+        try {
+            Map<String,String> teamMap = Launcher.dbEngine.timeline(handle, password, newest, oldest);
+            responseString = Launcher.gson.toJson(teamMap);
+        } catch (Exception ex) {
+            StringWriter sw = new StringWriter();
+            ex.printStackTrace(new PrintWriter(sw));
+            String exceptionAsString = sw.toString();
+            ex.printStackTrace();
+            return Response.status(500).entity(exceptionAsString).build();
+        }
+        return Response.ok(responseString)
+                .header("Access-Control-Allow-Origin", "*").build();
+    } 
+
+
      */
 
 
