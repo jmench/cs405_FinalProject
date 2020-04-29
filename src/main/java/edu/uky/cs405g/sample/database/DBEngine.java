@@ -2,6 +2,7 @@ package edu.uky.cs405g.sample.database;
 
 // Used with permission from Dr. Bumgardner
 
+import com.fasterxml.jackson.databind.node.IntNode;
 import org.apache.commons.dbcp2.*;
 import org.apache.commons.pool2.ObjectPool;
 import org.apache.commons.pool2.impl.GenericObjectPool;
@@ -224,7 +225,7 @@ public class DBEngine {
     }
 
     public Map<String,String> getUsers() {
-        Map<String,String> userIdMap = new HashMap<>();
+        Map<String,String> userIdMap = new LinkedHashMap<>();
 
         PreparedStatement stmt = null;
         try
@@ -235,11 +236,19 @@ public class DBEngine {
             stmt = conn.prepareStatement(queryString);
 			// No parameters, so no binding needed.
             ResultSet rs = stmt.executeQuery();
+
+            ArrayList<String> userIds = new ArrayList<String>();
+            ArrayList<String> userHandles = new ArrayList<String>();
+
             while (rs.next()) {
-                String userId = Integer.toString(rs.getInt("idnum"));
-                String userName = rs.getString("handle");
-                userIdMap.put(userId, userName);
+                userIds.add(Integer.toString(rs.getInt("idnum")));
+                userHandles.add(rs.getString("handle"));
             }
+            String uIds = String.join(",", userIds);
+            String uHnds = String.join(",", userHandles);
+
+            userIdMap.put("idnums", uIds);
+            userIdMap.put("handles", uHnds);
             rs.close();
             stmt.close();
             conn.close();
@@ -248,6 +257,7 @@ public class DBEngine {
         {
             ex.printStackTrace();
         }
+        System.out.println(userIdMap);
         return userIdMap;
     } // getUsers()
 
@@ -695,5 +705,122 @@ public class DBEngine {
         }
         return userIdMap;
     } // block()
+
+    public Map<String,String> suggestions(String handle, String pass){
+        Map<String,String> userIdMap = new LinkedHashMap<>();
+
+        // See if current user even exists
+        Integer currUser = isCorrectCredentials(handle, pass);
+        // If user does not exist, return the error
+        if (currUser == -10) {
+            userIdMap.put("status_code", Integer.toString(currUser));
+            userIdMap.put("error", "invalid credentials");
+            return userIdMap;
+        }
+        // Else user is verified
+        else {
+            PreparedStatement stmt = null;
+            try
+            {
+                Connection conn = ds.getConnection();
+                /*
+                String my_followers =null;
+                my_followers = "Select followed from Follows where followed = ?";
+                stmt = conn.prepareStatement(my_followers);
+                stmt.setString(1, Integer.toString(currUser));
+
+                 */
+
+                String queryString = null;
+                //TODO: Add correct query here
+                queryString = "SELECT idnum, handle FROM Identity WHERE(idnum = " +
+                        "(Select followed FROM Follows WHERE followed =( Select followed from Follows where followed = ?) " +
+                        "EXCEPT ? AND (Select followed from Follows where followed = ?))) " +
+                        "LIMIT 4";
+
+                stmt = conn.prepareStatement(queryString);
+                stmt.setString(1, Integer.toString(currUser));
+                stmt.setString(2, Integer.toString(currUser));
+                stmt.setString(3, Integer.toString(currUser));
+
+                ResultSet rs = stmt.executeQuery();
+
+                rs.last();
+                Integer totalResults = rs.getRow();
+                rs.beforeFirst();
+                userIdMap.put("status", Integer.toString(totalResults));
+
+                ArrayList<String> uIds = new ArrayList<String>();
+                ArrayList<String> uHndl = new ArrayList<String>();
+
+                while (rs.next()) {
+                    uIds.add(Integer.toString(rs.getInt("idnum")));
+                    uHndl.add(rs.getString("handle"));
+                }
+                String userIds = String.join(",", uIds);
+                String userHandles = String.join(",", uHndl);
+
+                userIdMap.put("idnums", userIds);
+                userIdMap.put("handles", userHandles);
+
+                rs.close();
+                stmt.close();
+                conn.close();
+            }
+            catch(Exception ex)
+            {
+                ex.printStackTrace();
+                System.out.println("Failed to block user...");
+                userIdMap.put("status", "0");
+                userIdMap.put("error", "user does not exist");
+            }
+        }
+        return userIdMap;
+    } // suggestions()
+
+    public Map<String,String> timeline(String handle, String pass, String newest, String oldest){
+        Map<String,String> userIdMap = new LinkedHashMap<>();
+
+        // See if current user even exists
+        Integer currUser = isCorrectCredentials(handle, pass);
+        // If user does not exist, return the error
+        if (currUser == -10) {
+            userIdMap.put("status_code", Integer.toString(currUser));
+            userIdMap.put("error", "invalid credentials");
+            return userIdMap;
+        }
+        // Else user is valid, get timeline
+        else {
+            PreparedStatement stmt = null;
+            try
+            {
+                Connection conn = ds.getConnection();
+                String queryString = null;
+                queryString = "SELECT followers, tstamp FROM Follows F UNION ALL SELECT sidnum, tstamp FROM Reprint R " +
+                        "EXCEPT (SELECT sidnum, expires from Story WHERE (expires < ?)) ORDER BY R.tstamp";
+
+                stmt = conn.prepareStatement(queryString);
+                stmt.setString(1, oldest);
+
+                ResultSet rs = stmt.executeQuery();
+
+                // Place all user info into Map to return to API
+                while (rs.next()) {
+                    System.out.println("reading timeline");
+                }
+                rs.close();
+                stmt.close();
+                conn.close();
+            }
+            catch(Exception ex)
+            {
+                ex.printStackTrace();
+                System.out.println("Failed to read timeline...");
+                userIdMap.put("status", "0");
+                userIdMap.put("error", "failed to read timeline");
+            }
+        }
+        return userIdMap;
+    } // timeline()
 
 } // class DBEngine

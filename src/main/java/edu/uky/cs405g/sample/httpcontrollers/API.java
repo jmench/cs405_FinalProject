@@ -235,7 +235,7 @@ public class API {
                 .header("Access-Control-Allow-Origin", "*").build();
     }
 
-    /*
+
     // curl -d '{"handle":"@cooldude42", "password":"mysecret!"}'
     // -H "Content-Type: application/json"
     // -X POST http://localhost:9990/api/suggestions
@@ -243,14 +243,30 @@ public class API {
     // Output status > 0 is number of suggestions returned
     // {"status":"3", "idnums":"1,2,4", "handles":"@paul,@carlos","@fake"}
     // {"status":"0", "error":"no suggestions"}
-    @GET
+    @POST
     @Path("/suggestions")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response suggestions(@PathParam("handle") String handle, @PathParam("password") String password)  {
+    @Consumes(MediaType.APPLICATION_JSON)
+    public Response suggestions(InputStream inputData)  {
         String responseString = "{\"status_code\":0}";
         StringBuilder crunchifyBuilder = new StringBuilder();
         try {
-            Map<String,String> teamMap = Launcher.dbEngine.suggestions(handle, password);
+            // Here its is parsing the input into a JSon string
+            BufferedReader in = new BufferedReader(new InputStreamReader(inputData));
+            String line = null;
+            while ((line=in.readLine()) != null) {
+                crunchifyBuilder.append(line);
+            }
+            String jsonString = crunchifyBuilder.toString();
+
+            // Create a map of the jsonString in format {handle=@cooldude42, password=mysecret!}
+            Map<String, String> myMap = gson.fromJson(jsonString, mapType);
+
+            // Create strings to get values from the map
+            String handle = myMap.get("handle");
+            String pass = myMap.get("password");
+
+            Map<String,String> teamMap = Launcher.dbEngine.suggestions(handle, pass);
             responseString = Launcher.gson.toJson(teamMap);
         } catch (Exception ex) {
             StringWriter sw = new StringWriter();
@@ -262,8 +278,6 @@ public class API {
         return Response.ok(responseString)
                 .header("Access-Control-Allow-Origin", "*").build();
     }
-
-     */
 
 
     // curl -d '{"handle":"@cooldude42", "password":"mysecret!", "chapter":"I ate at Mario's!", "url":"http://imagesite.dne/marios.jpg"}'
@@ -477,7 +491,7 @@ public class API {
                 .header("Access-Control-Allow-Origin", "*").build();
     }
 
-    /*
+
     // Input: curl -d '{"handle":"@cooldude42", "password":"mysecret!", "newest":"2020-04-02 15:33:59", "oldest":"2020-03-29 00:00:01"}' -H "Content-Type: application/json" -X POST http://localhost:9990/api/timeline (Links to an external site.)
     //
     // This is the most complicated API. You'll need a single SQL statement to get
@@ -498,14 +512,32 @@ public class API {
     // [EDIT 04/17] I left off sidnum, but it is needed.]
     // Output: {"0":"{\"type\":\"story\",\"author\":\"@cooldude44\",\"sidnum\":\"14\",\"chapter\":\"Just some set math, SQL is super fun!\",\"posted\":\"2020-04-16 15:37:48\"}","1":"{\"type\":\"reprint\",\"author\":\"@cooldude44\",\"sidnum\":\"15\",\"chapter\":\"JSON objects are fun and useful!\",\"posted\":\"2020-04-15 10:37:44\"}","status":"2"}
     // Output: {"status":"0"}
-    @GET
+    @POST
     @Path("/timeline")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response timeline(@PathParam("handle") String handle, @PathParam("password") String password, @PathParam("newest") String newest, @PathParam("oldest") String oldest)  {
+    @Consumes(MediaType.APPLICATION_JSON)
+    public Response timeline(InputStream inputData)  {
         String responseString = "{\"status_code\":0}";
         StringBuilder crunchifyBuilder = new StringBuilder();
         try {
-            Map<String,String> teamMap = Launcher.dbEngine.timeline(handle, password, newest, oldest);
+            // Here its is parsing the input into a JSon string
+            BufferedReader in = new BufferedReader(new InputStreamReader(inputData));
+            String line = null;
+            while ((line=in.readLine()) != null) {
+                crunchifyBuilder.append(line);
+            }
+            String jsonString = crunchifyBuilder.toString();
+
+            // Create a map of the jsonString in format {handle=@cooldude42, password=mysecret!,...}
+            Map<String, String> myMap = gson.fromJson(jsonString, mapType);
+
+            // Create strings to get values from the map
+            String handle = myMap.get("handle");
+            String pass = myMap.get("password");
+            String newest = myMap.get("newest");
+            String oldest = myMap.get("oldest");
+
+            Map<String,String> teamMap = Launcher.dbEngine.timeline(handle, pass, newest, oldest);
             responseString = Launcher.gson.toJson(teamMap);
         } catch (Exception ex) {
             StringWriter sw = new StringWriter();
@@ -516,15 +548,6 @@ public class API {
         }
         return Response.ok(responseString)
                 .header("Access-Control-Allow-Origin", "*").build();
-    } 
-
-
-     */
-
-
-
-
-
-
+    }
 
 } // API.java
