@@ -12,10 +12,7 @@ import javax.xml.transform.Result;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.sql.*;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 
 public class DBEngine {
@@ -88,9 +85,43 @@ public class DBEngine {
         return dataSource;
     } // setupDataSource()
 
+
+    // This will return the idnum of the current user
+    // Returns -10 if invalid credentials
+    public int isCorrectCredentials(String handle, String pass) {
+        System.out.println("Checking user credentials...");
+        Integer userId = -10;
+        PreparedStatement stmt = null;
+
+        try {
+            Connection conn = ds.getConnection();
+            String queryString = null;
+            // Query the DB to retrieve the id of the possible user
+            queryString = "SELECT idnum FROM Identity where handle = ? and pass = ?";
+            stmt = conn.prepareStatement(queryString);
+
+            stmt.setString(1,handle);
+            stmt.setString(2, pass);
+
+            ResultSet rs = stmt.executeQuery();
+
+            while (rs.next()) {
+                System.out.println("User credentials are correct.");
+                userId = rs.getInt("idnum");
+            }
+            rs.close();
+            stmt.close();
+            conn.close();
+        }
+        catch(Exception ex)
+        {
+            ex.printStackTrace();
+        }
+        return userId;
+    }
+
     public Map<String,String> getUsers() {
         Map<String,String> userIdMap = new HashMap<>();
-        System.out.println("Made it here");
 
         PreparedStatement stmt = null;
         try
@@ -171,7 +202,8 @@ public class DBEngine {
 			Integer result = stmt.executeUpdate();
 
 			if (result == 0) {
-                throw new SQLException("Creating user failed, no rows affected.");
+                userIdMap.put("status", "-2");
+                userIdMap.put("error", "SQL Constraint Exception");
 			}
 			try (ResultSet userId = stmt.getGeneratedKeys()) {
 			    if(userId.next()) {
@@ -190,39 +222,55 @@ public class DBEngine {
 	    return userIdMap;
     } // createuser()
 	
-    public Map<String,String> seeuser(String handle, String password){
-	Map<String,String> userIdMap = new HashMap<>();
-	
-	PreparedStatement stmt = null;
+    public Map<String,String> seeuser(String handle, String password, String idnum){
+	Map<String,String> userIdMap = new LinkedHashMap<>();
 
-	try
-	{
-	     Connection conn = ds.getConnection();
-	     String queryString = null;
-	     queryString = "SELECT handle, fullname, location, email, bdate FROM Identity WHERE handle = ?";
-	     stmt = conn.prepareStatement(queryString);
-			stmt.setString(1, handle);
+    // See if current user even exists
+    Integer userExists = isCorrectCredentials(handle, password);
+    // If user does not exist, return the error
+    if (userExists == -10) {
+        userIdMap.put("status_code", Integer.toString(userExists));
+        userIdMap.put("error", "invalid credentials");
+    } else {
+        System.out.println("Printing user info at specified idnum...");
+        PreparedStatement stmt = null;
 
-	     ResultSet rs = stmt.executeQuery();
+        try
+        {
+            Connection conn = ds.getConnection();
+            String queryString = null;
+            queryString = "SELECT handle, fullname, location, email, bdate, joined FROM Identity WHERE idnum = ?";
+            stmt = conn.prepareStatement(queryString);
+            stmt.setString(1, idnum);
 
-             //while (rs.next()) {
-                String userId = Integer.toString(rs.getInt("idnum"));
-                String userName = rs.getString("handle");
-                userIdMap.put(userId, userName);
-            //}
-             rs.close();
- 	     stmt.close();
-	     conn.close();
-	}
-	catch(Exception ex)
-	{
-	    ex.printStackTrace();
-	}
+            ResultSet rs = stmt.executeQuery();
+
+            while (rs.next()) {
+                String userHandle = rs.getString("handle");
+                String userFullName = rs.getString("fullname");
+                String userLocation = rs.getString("location");
+                String userEmail = rs.getString("email");
+                String userBdate = rs.getString("bdate");
+                String userJoined = rs.getString("joined");
+
+                userIdMap.put("status", "1");
+                userIdMap.put("handle", userHandle);
+                userIdMap.put("fullname", userFullName);
+                userIdMap.put("location", userLocation);
+                userIdMap.put("email", userEmail);
+                userIdMap.put("bdate", userBdate);
+                userIdMap.put("joined", userJoined);
+            }
+            rs.close();
+            stmt.close();
+            conn.close();
+        }
+        catch(Exception ex)
+        {
+            ex.printStackTrace();
+        }
+    }
 	return userIdMap;
-    }         
-
-
-	
-	
+    } // seeuser()
 
 } // class DBEngine
