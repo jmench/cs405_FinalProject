@@ -136,12 +136,18 @@ public class API {
         return Response.ok(responseString)
                 .header("Access-Control-Allow-Origin", "*").build();
     } // exampleBDATE
-    
-    @GET
+
+    //curl -d '{"handle":"@cooldude42", "password":"mysecret!", "fullname":"Angus Mize", "location":"Kentucky", "xmail":"none@nowhere.com", "bdate":"1970-07-01"}'
+    //     -H "Content-Type: application/json"
+    //     -X POST http://localhost:9990/api/createuser
+    //
+    //{"status_code":4} where integer is idnum of new user
+    @POST
     @Path("/createuser")
     @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
     public Response createuser(@PathParam("handle") String handle, @PathParam("password") String password, @PathParam("fullname") String fullname, @PathParam("location") String location, @PathParam("xmail") String xmail, @PathParam("bdate") String bdate)  {
-        String responseString = "{\"status_code\":0}";
+        String responseString = "{\"status\":0}";
         StringBuilder crunchifyBuilder = new StringBuilder();
         try {
             Map<String,String> teamMap = Launcher.dbEngine.createuser(handle, password, fullname, location, xmail, bdate);

@@ -36,7 +36,7 @@ public class DBEngine {
 					+"&useLegacyDatetimeCode=false&serverTimezone=UTC"; 
 			} else {
                 dbConnectionString ="jdbc:mysql://" + host + "/" + database
-				+ "?" + "user=" + login  +"&password=" + password 
+				+ "?" + "user=" + login  +"&password=" + password
 				+ "&useUnicode=true&useJDBCCompliantTimezoneShift=true"
 				+ "&useLegacyDatetimeCode=false&serverTimezone=UTC";
             }
@@ -92,6 +92,7 @@ public class DBEngine {
 
     public Map<String,String> getUsers() {
         Map<String,String> userIdMap = new HashMap<>();
+        System.out.println("Made it here");
 
         PreparedStatement stmt = null;
         try
@@ -152,38 +153,39 @@ public class DBEngine {
     } // getBDATE()
   
     public Map<String,String> createuser(String handle, String password, String fullname, String location, String xmail, String bdate){
-	Map<String,String> userIdMap = new HashMap<>();
-	
-	PreparedStatement stmt = null;
+        Map<String,String> userIdMap = new HashMap<>();
+        System.out.println("Made it in Create User");
 
-	try
-	{
-	     Connection conn = ds.getConnection();
-	     String queryString = null;
-	     queryString = "INSERT INTO Identity (handle, password, fullname, location, email, bdate) VALUES(?, ?, ?, ?, ?, ?)";
-	     stmt = conn.prepareStatement(queryString);
+        PreparedStatement stmt = null;
+        try
+        {
+            Connection conn = ds.getConnection();
+            String queryString = null;
+            queryString = "INSERT INTO Identity (handle, password, fullname, location, email, bdate) VALUES(?, ?, ?, ?, ?, ?)";
+            stmt = conn.prepareStatement(queryString);
 			stmt.setString(1, handle);
 			stmt.setString(2, password);
 			stmt.setString(3, fullname);
 			stmt.setString(4, location);
 			stmt.setString(5, xmail);
 			stmt.setString(6, bdate);
-	     
-	     ResultSet rs = stmt.executeQuery();
-	     while (rs.next()){
-		String userId = Integer.toString(rs.getInt("idnum"));
-		userIdMap.put("status", userId);
-	     }
-	     rs.close();
- 	     stmt.close();
-	     conn.close();
-	}
-	catch(Exception ex)
-	{
+
+			ResultSet rs = stmt.executeQuery();
+
+			while (rs.next()) {
+		        String userId = Integer.toString(rs.getInt("idnum"));
+		        userIdMap.put("status", userId);
+			}
+			rs.close();
+			stmt.close();
+			conn.close();
+	    }
+	    catch(Exception ex)
+	    {
 	    ex.printStackTrace();
-	}
-	return userIdMap;
-    }
+	    }
+	    return userIdMap;
+    } // createuser()
 	
     public Map<String,String> seeuser(String handle, String password){
 	Map<String,String> userIdMap = new HashMap<>();
