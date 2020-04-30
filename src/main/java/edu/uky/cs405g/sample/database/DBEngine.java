@@ -307,7 +307,7 @@ public class DBEngine {
 			stmt.setString(5, xmail);
 			stmt.setString(6, bdate);
 
-			Integer result = stmt.executeUpdate();
+			int result = stmt.executeUpdate();
 
 			if (result == 0) {
 			    System.out.println("Failed to create user...");
@@ -496,7 +496,7 @@ public class DBEngine {
                 String queryString = null;
                 queryString = "INSERT INTO Story (idnum, chapter, url, expires) VALUES(?, ?, ?, ?)";
 
-                stmt = conn.prepareStatement(queryString, Statement.RETURN_GENERATED_KEYS);
+                stmt = conn.prepareStatement(queryString);
                 stmt.setString(1, Integer.toString(currUser));
                 stmt.setString(2, chapter);
                 stmt.setString(3, url);
@@ -508,13 +508,9 @@ public class DBEngine {
                     System.out.println("Failed to post story...");
                     userIdMap.put("status", "-2");
                     userIdMap.put("error", "SQL Constraint Exception");
-                }
-
-                try (ResultSet userId = stmt.getGeneratedKeys()) {
-                    if(userId.next()) {
-                        System.out.println("Successfully posted story!");
-                        userIdMap.put("status", "1");
-                    }
+                } else {
+                    System.out.println("Successfully posted story!");
+                    userIdMap.put("status", "1");
                 }
 
                 stmt.close();
@@ -728,10 +724,11 @@ public class DBEngine {
 
                 String queryString = null;
                 //TODO: Add correct query here
-                queryString = "SELECT idnum, handle FROM Identity WHERE(idnum = " +
-                        "(Select followed FROM Follows WHERE followed =( Select followed from Follows where followed = ?) " +
-                        "EXCEPT ? AND (Select followed from Follows where followed = ?))) " +
-                        "LIMIT 4";
+                queryString = "select idnum, handle from Identity inner join (select followedList.followed from Follows followedList inner join " +
+                        "(select currUser.followed from Follows currUser where currUser.follower = ?)" +
+                        " as currUserFollowList on followedList.follower = currUserFollowList.followed " +
+                        "where followedList.followed NOT IN (Select followed from Follows where follower=?) " +
+                        "and followedList.followed != ? LIMIT 4) as suggestions on Identity.idnum = suggestions.followed;";
 
                 stmt = conn.prepareStatement(queryString);
                 stmt.setString(1, Integer.toString(currUser));
@@ -745,19 +742,23 @@ public class DBEngine {
                 rs.beforeFirst();
                 userIdMap.put("status", Integer.toString(totalResults));
 
-                ArrayList<String> uIds = new ArrayList<String>();
-                ArrayList<String> uHndl = new ArrayList<String>();
+                if (totalResults == 0) {
+                    userIdMap.put("status", "0");
+                    userIdMap.put("error", "no suggestions");
+                } else {
+                    ArrayList<String> uIds = new ArrayList<String>();
+                    ArrayList<String> uHndl = new ArrayList<String>();
 
-                while (rs.next()) {
-                    uIds.add(Integer.toString(rs.getInt("idnum")));
-                    uHndl.add(rs.getString("handle"));
+                    while (rs.next()) {
+                        uIds.add(Integer.toString(rs.getInt("idnum")));
+                        uHndl.add(rs.getString("handle"));
+                    }
+                    String userIds = String.join(",", uIds);
+                    String userHandles = String.join(",", uHndl);
+
+                    userIdMap.put("idnums", userIds);
+                    userIdMap.put("handles", userHandles);
                 }
-                String userIds = String.join(",", uIds);
-                String userHandles = String.join(",", uHndl);
-
-                userIdMap.put("idnums", userIds);
-                userIdMap.put("handles", userHandles);
-
                 rs.close();
                 stmt.close();
                 conn.close();
@@ -765,9 +766,9 @@ public class DBEngine {
             catch(Exception ex)
             {
                 ex.printStackTrace();
-                System.out.println("Failed to block user...");
+                System.out.println("Failed to find suggestions...");
                 userIdMap.put("status", "0");
-                userIdMap.put("error", "user does not exist");
+                userIdMap.put("error", "unable to get suggestions");
             }
         }
         return userIdMap;
