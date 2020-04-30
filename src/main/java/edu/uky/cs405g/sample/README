@@ -1,0 +1,248 @@
+Date: 
+	05/01/2020	
+
+Contributors: 
+	Haleigh Snapp
+	Jordan Menchen
+	Will Watkins
+	Zac Foster
+
+Compilation:
+	We used the starter code and IntelliJ. We can then simply hit play 
+	and type the commands given through the project description
+	to test our code. 
+
+Overview:
+	The following program is our HTTP RESTful API. The creation of a 
+database (SMPDB) will be utilized to perform tasks that meet our criteria 
+for our social media platform: Instatwitsnapbook. The following tables will be
+created: Identity, Story, Follows, Reprint, Block. These will be used to 
+store the data for our social media users. The following APIs were also created
+to do simple tasks within the database through the use of queries: /api/
+createuser, /api/seeuser, /api/suggestions, /api/poststory, /api/reprint,
+/api/follow, /api/unfollow, /api/block, /api/timeline. 
+
+What's Meant To Happen:
+	When running the following APIs, the user will also be given output
+with a status message stating if the API was successful or unsuccessful and
+what the error was if neccesary. 
+
+ /api/createuser
+	The user would have input in the following form:
+	curl -d '{"handle":"@coolness","password":"secret!","fullname":
+	"Carole Baskin","location":"Oklahoma","xmail":"tiger@gmail.com",
+	"bdate":"1970-05-01"}' -H "Content-Type:application/json" -X POST
+	http://localhost:9990/api/createuser
+
+	Once this command has been entered, our API.java will use the 
+	/api/createuser Path within our code. Within our API, we will create
+	a response string for the output for the user. This will contain the 
+	status. We then need to read the input from the curl call so that
+	we may send these values to our createuser function found in 
+	DBEngine.java. Once these values are stored, we can call the function
+	which will in turn add the the user to the database. This user will be
+	found in the Identity table. The function will return a map which
+	we will use for our response string that is outputted. This is used
+	through JSON. If all is successful, the status will be positive and 
+	contain the new users idnum. If the creation of the user was 
+	unsuccessful, the status will be negative with the error displayed.
+
+ /api/seeuser
+	The user would have input in the following form:
+	curl -d '{"handle":"@coolness","password":"secret!"}' -H "Content-Type:
+	application/json" -X POST http://localhost:9990/api/seeuser/2
+	NOTE: the 2 in this case will be the idnum of the user wanted to be
+	seen
+
+	Once this command has been entered, our API.java will use the 
+	/api/seeuser Path within our code. Within our API, we will create
+	a response string for the output for the user. This will contain the 
+	status. We then need to read the input from the curl call so that
+	we may send these values to our seeuser function found in 
+	DBEngine.java. We also need to store the idnum that was within our
+	curl call. Once these values are stored, we can call the function
+	which will in turn display the user from the database to the requestor.
+	The display of the user will include their handle, fullname, location,
+	email, birthdate, and the day they joined. The output will also contain
+	the status as to if this diplay can be successful. If the user can not
+	be displayed from the database, the output will be empty, which could 
+	be explained by no match being found or the user being blocked. 
+	The function will return a map which will be used by Json so that 
+	our response string can be outputted. 
+
+ /api/suggestions
+	The user would have input in the following form:
+	curl -d '{"handle":"@coolness","password":"secret!"}' -H "Content-Type:
+	application/json" -X POST http://localhost:9990/api/suggestions
+
+	Once this command has been entered, our API.java will use the 
+	/api/suggestions Path within our code. Within our API, we will create
+	a response string for the output for the user. This will contain the 
+	status. We then need to read the input from the curl call so that
+	we may send these values to our suggestions function found in 
+	DBEngine.java. Once these values are stored, we can call the function
+	which will in turn display users from the database to the requestor as
+	suggestions. The display of the user will include their idnum and 
+	handle. The output will also contain the status as to if this diplay of 
+	the suggestions was successful.If successful, the status will be the 
+	amount of suggestions offered. If the suggestions cannot be displayed 
+	from the database, the status will be zero, which shows there are no 
+	suggestions. 
+	The function will return a map which will be used by Json so that 
+	our response string can be outputted. 
+
+ /api/poststory
+	The user would have input in the following form:
+	curl -d '{"handle":"@coolness","password":"secret!","chapter":"Fun day 
+	at the lake!","url":"http://imagesite.dne/lake.jpg"}' -H "Content-Type:
+	application/json" -X POST http://localhost:9990/api/poststory
+
+	Once this command has been entered, our API.java will use the 
+	/api/poststory Path within our code. Within our API, we will create
+	a response string for the output for the user. This will contain the 
+	status. We then need to read the input from the curl call so that
+	we may send these values to our poststory function found in 
+	DBEngine.java. Once these values are stored, we can call the function
+	which will add values to the table Story and return a map. This will 
+	be used by Json so that our response string can be outputted. Our 
+	response string will contain our status as to if the "post" to our
+	"story" was successful. If it was, the status will be a 1. If it was 
+	unsuccesful, the status will be 0 and an error message will be shown
+	as well. 
+
+ /api/reprint
+	The user would have input in the following form:
+	curl -d '{"handle":"@coolness","password":"secret!","likeit":true}' 
+	-H "Content-Type: application/json" -X POST 
+	http://localhost:9990/api/reprint/40
+	NOTE: The 45 represents the story idnum. 
+
+	Once this command has been entered, our API.java will use the 
+	/api/reprint Path within our code. Within our API, we will create
+	a response string for the output for the user. This will contain the 
+	status. We then need to read the input from the curl call, including the
+	story idnum so that we may send these values to our reprint function 
+	found in DBEngine.java. Once these values are stored, we can call the 
+	function which will add values to the table Reprint and return a map. 
+	This will be used by Json so that our response string can be outputted. 
+	Our response string will contain our status as to if the reprint was 
+	successful. If it was, the status will be a 1. If it was unsuccesful, 
+	the status will be 0 and an error message will be shown as well. 
+
+ /api/follow
+ 	The user would have input in the following form:
+	curl -d '{"handle":"@coolness","password":"secret!"}' -H "Content-Type:
+	application/json" -X POST http://localhost:9990/api/follow/2
+	NOTE: the 2 in this case will be the idnum of the user that needs to be 
+	added to your followings list
+
+	Once this command has been entered, our API.java will use the 
+	/api/follow Path within our code. Within our API, we will create
+	a response string for the output for the user. This will contain the 
+	status. We then need to read the input from the curl call so that
+	we may send these values to our follow function found in 
+	DBEngine.java. We also need to store the idnum that was within our
+	curl call. Once these values are stored, we can call the function
+	which will add the user requested to the requestors followings list.
+	The function will return a map which will be used by Json so that 
+	our response string can be outputted. The output will contain the status
+	of the follow task. If it is successful, the status 1 will be displayed. 
+	If unsucessful, the status will be 0 and an error mesage will be shown. 
+
+ /api/unfollow
+ 	The user would have input in the following form:
+	curl -d '{"handle":"@coolness","password":"secret!"}' -H "Content-Type:
+	application/json" -X POST http://localhost:9990/api/unfollow/2
+	NOTE: the 2 in this case will be the idnum of the user that needs to be 
+	removed from your followings list
+
+	Once this command has been entered, our API.java will use the 
+	/api/unfollow Path within our code. Within our API, we will create
+	a response string for the output for the user. This will contain the 
+	status. We then need to read the input from the curl call so that
+	we may send these values to our unfollow function found in 
+	DBEngine.java. We also need to store the idnum that was within our
+	curl call. Once these values are stored, we can call the function
+	which will remove the user requested from the requestors followings 
+	list. The function will return a map which will be used by Json so that 
+	our response string can be outputted. The output will contain the status
+	of the unfollow task. If it is successful, the status 1 will be 
+	displayed. If unsucessful, the status will be 0 and an error mesage will 
+	be shown. 
+
+ /api/block
+ 	The user would have input in the following form:
+	curl -d '{"handle":"@coolness","password":"secret!"}' -H "Content-Type:
+	application/json" -X POST http://localhost:9990/api/block/2
+	NOTE: the 2 in this case will be the idnum of the user that needs to be 
+	blocked.
+
+	Once this command has been entered, our API.java will use the 
+	/api/block Path within our code. Within our API, we will create
+	a response string for the output for the user. This will contain the 
+	status. We then need to read the input from the curl call so that
+	we may send these values to our block function found in 
+	DBEngine.java. We also need to store the idnum that was within our
+	curl call. Once these values are stored, we can call the function
+	which will block the user requested. This will add values to the Block
+	table. 
+	The function will return a map which will be used by Json so that 
+	our response string can be outputted. The output will contain the status
+	of the block task. If it is successful, the status 1 will be displayed. 
+	If unsucessful, the status will be 0 and an error mesage will be shown. 
+
+ /api/timeline
+ 	The user would have input in the following form:
+	curl -d '{"handle":"@coolness","password":"secret!","newest":"2020-04-
+	02 15:33:59","oldest":"2020-03-29 00:00:02"}' -H "Content-Type:
+	application/json" -X POST http://localhost:9990/api/timeline
+
+	Once this command has been entered, our API.java will use the 
+	/api/timeline Path within our code. Within our API, we will create
+	a response string for the output for the user. This will contain the 
+	status. We then need to read the input from the curl call so that
+	we may send these values to our timeline function found in 
+	DBEngine.java. Once these values are stored, we can call the function
+	which will display all story/reprints of people you follow.
+	The function will return a map which will be used by Json so that 
+	our response string can be outputted. The output will contain the status
+	of the timeline task as well as the story/reprints and the users 
+	information that fall within the timeline specified by the requestor. 
+	If it is successful, the status will display the amount of story/
+	reprints from the requestors followed.  
+	If unsucessful or no story/reprints fall in the timeline, the status will 
+	be 0. 
+
+Extra Functions Required: 
+	The following are fucntions we had to add for checking for errors when
+trying to execute tasks within the API functions.  
+ public int isCorrectCredentials(String handle, String pass)
+	This fucntion can be found in the DBEngine.java file. It is used to 
+	check the users credentials. This function must be ran with  almost
+	all APIs with the exception of creating a new user. The purpose of the
+	function is to verify that the handle and password entered through the 
+	curl call match within the database. If not, then a credential error 
+	will be thrown and the API will not be completed. 
+ 
+ public int doesUserFollow(Integer currUser, Integer follow)
+	This function can be found in the DBEngine.java file. It is used to 
+	check if the user is already following the requested user. This function
+	will need to be ran with the follow API. If the user is already 
+	following their requested user, then the API should not be continued. 
+	This function verifies that and print out if the user is already
+	following the requested user. If this is the case, the function will
+	return a one to the call and the API will give a status code of zero. 
+ 
+ public int isUserBlocked(Integer blocker, Integer blocking)
+	The function can be found in the DBEngine.java file. It is used to
+	check if the user is blocked. This fucntion will need to be used
+	in multiple APIs. If the user is blocked, then the function
+	will return a one to the call point. This can then be used to 
+	determine what status number needs to be outputted to the user. 
+	If the user is not blocked, the function returns a zero and the 
+	the API may continue with the task. 
+
+
+
+
+
