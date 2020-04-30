@@ -16,7 +16,7 @@ What's Meant To Happen:
 with a status message stating if the API was successful or unsuccessful and
 what the error was if neccesary. 
 
-/api/createuser
+ /api/createuser
 	The user would have input in the following form:
 	curl -d '{"handle":"@coolness","password":"secret!","fullname":
 	"Carole Baskin","location":"Oklahoma","xmail":"tiger@gmail.com",
@@ -36,7 +36,7 @@ what the error was if neccesary.
 	contain the new users idnum. If the creation of the user was 
 	unsuccessful, the status will be negative with the error displayed.
 
-/api/seeuser
+ /api/seeuser
 	The user would have input in the following form:
 	curl -d '{"handle":"@coolness","password":"secret!"}' -H "Content-Type:
 	application/json" -X POST http://localhost:9990/api/seeuser/2
@@ -59,7 +59,7 @@ what the error was if neccesary.
 	The function will return a map which will be used by Json so that 
 	our response string can be outputted. 
 
-/api/suggestions
+ /api/suggestions
 	The user would have input in the following form:
 	curl -d '{"handle":"@coolness","password":"secret!"}' -H "Content-Type:
 	application/json" -X POST http://localhost:9990/api/suggestions
@@ -80,7 +80,7 @@ what the error was if neccesary.
 	The function will return a map which will be used by Json so that 
 	our response string can be outputted. 
 
-/api/poststory
+ /api/poststory
 	The user would have input in the following form:
 	curl -d '{"handle":"@coolness","password":"secret!","chapter":"Fun day 
 	at the lake!","url":"http://imagesite.dne/lake.jpg"}' -H "Content-Type:
@@ -99,7 +99,7 @@ what the error was if neccesary.
 	unsuccesful, the status will be 0 and an error message will be shown
 	as well. 
 
-/api/reprint
+ /api/reprint
 	The user would have input in the following form:
 	curl -d '{"handle":"@coolness","password":"secret!","likeit":true}' 
 	-H "Content-Type: application/json" -X POST 
@@ -118,7 +118,7 @@ what the error was if neccesary.
 	successful. If it was, the status will be a 1. If it was unsuccesful, 
 	the status will be 0 and an error message will be shown as well. 
 
-/api/follow
+ /api/follow
  	The user would have input in the following form:
 	curl -d '{"handle":"@coolness","password":"secret!"}' -H "Content-Type:
 	application/json" -X POST http://localhost:9990/api/follow/2
@@ -138,7 +138,7 @@ what the error was if neccesary.
 	of the follow task. If it is successful, the status 1 will be displayed. 
 	If unsucessful, the status will be 0 and an error mesage will be shown. 
 
-/api/unfollow
+ /api/unfollow
  	The user would have input in the following form:
 	curl -d '{"handle":"@coolness","password":"secret!"}' -H "Content-Type:
 	application/json" -X POST http://localhost:9990/api/unfollow/2
@@ -159,7 +159,7 @@ what the error was if neccesary.
 	displayed. If unsucessful, the status will be 0 and an error mesage will 
 	be shown. 
 
-/api/block
+ /api/block
  	The user would have input in the following form:
 	curl -d '{"handle":"@coolness","password":"secret!"}' -H "Content-Type:
 	application/json" -X POST http://localhost:9990/api/block/2
@@ -180,7 +180,7 @@ what the error was if neccesary.
 	of the block task. If it is successful, the status 1 will be displayed. 
 	If unsucessful, the status will be 0 and an error mesage will be shown. 
 
-/api/timeline
+ /api/timeline
  	The user would have input in the following form:
 	curl -d '{"handle":"@coolness","password":"secret!","newest":"2020-04-
 	02 15:33:59","oldest":"2020-03-29 00:00:02"}' -H "Content-Type:
@@ -203,4 +203,35 @@ what the error was if neccesary.
 	be 0. 
 
 Extra Functions Required: 
+	The following are fucntions we had to add for checking for errors when
+trying to execute tasks within the API functions.  
+ public int isCorrectCredentials(String handle, String pass)
+	This fucntion can be found in the DBEngine.java file. It is used to 
+	check the users credentials. This function must be ran with  almost
+	all APIs with the exception of creating a new user. The purpose of the
+	function is to verify that the handle and password entered through the 
+	curl call match within the database. If not, then a credential error 
+	will be thrown and the API will not be completed. 
+ 
+ public int doesUserFollow(Integer currUser, Integer follow)
+	This function can be found in the DBEngine.java file. It is used to 
+	check if the user is already following the requested user. This function
+	will need to be ran with the follow API. If the user is already 
+	following their requested user, then the API should not be continued. 
+	This function verifies that and print out if the user is already
+	following the requested user. If this is the case, the function will
+	return a one to the call and the API will give a status code of zero. 
+ 
+ public int isUserBlocked(Integer blocker, Integer blocking)
+	The function can be found in the DBEngine.java file. It is used to
+	check if the user is blocked. This fucntion will need to be used
+	in multiple APIs. If the user is blocked, then the function
+	will return a one to the call point. This can then be used to 
+	determine what status number needs to be outputted to the user. 
+	If the user is not blocked, the function returns a zero and the 
+	the API may continue with the task. 
+
+
+
+
 
