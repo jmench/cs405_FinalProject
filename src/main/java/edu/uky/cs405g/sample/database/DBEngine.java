@@ -724,16 +724,18 @@ public class DBEngine {
 
                 String queryString = null;
                 //TODO: Add correct query here
-                queryString = "select idnum, handle from Identity inner join (select followedList.followed from Follows followedList inner join " +
-                        "(select currUser.followed from Follows currUser where currUser.follower = ?)" +
-                        " as currUserFollowList on followedList.follower = currUserFollowList.followed " +
-                        "where followedList.followed NOT IN (Select followed from Follows where follower=?) " +
-                        "and followedList.followed != ? LIMIT 4) as suggestions on Identity.idnum = suggestions.followed;";
+                queryString = "select idnum, handle from Identity inner join (select followedList.followed from Follows " +
+                        "followedList inner join (select currUser.followed from Follows currUser where " +
+                        "currUser.follower = ?) as currUserFollowList on followedList.follower = " +
+                        "currUserFollowList.followed where followedList.followed NOT IN (select followed from " +
+                        "Follows where follower=? union select blocked from Block where idnum = ?) and " +
+                        "followedList.followed != ? LIMIT 4) as suggestions on Identity.idnum = suggestions.followed;";
 
                 stmt = conn.prepareStatement(queryString);
                 stmt.setString(1, Integer.toString(currUser));
                 stmt.setString(2, Integer.toString(currUser));
                 stmt.setString(3, Integer.toString(currUser));
+                stmt.setString(4, Integer.toString(currUser));
 
                 ResultSet rs = stmt.executeQuery();
 
