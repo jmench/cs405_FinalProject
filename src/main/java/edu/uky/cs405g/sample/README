@@ -8,7 +8,9 @@ Contributors:
 	Zac Foster
 
 Compilation:
-	We used the starter code.
+	We used the starter code and IntelliJ. We can then simply hit play 
+	and type the commands given through the project description
+	to test our code. 
 
 Overview:
 	The following program is our HTTP RESTful API. The creation of a 
@@ -39,7 +41,7 @@ what the error was if neccesary.
 	we may send these values to our createuser function found in 
 	DBEngine.java. Once these values are stored, we can call the function
 	which will in turn add the the user to the database. This user will be
-	found in the Identity table. The fucntion will return a map which
+	found in the Identity table. The function will return a map which
 	we will use for our response string that is outputted. This is used
 	through JSON. If all is successful, the status will be positive and 
 	contain the new users idnum. If the creation of the user was 
