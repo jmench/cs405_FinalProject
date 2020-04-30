@@ -6,14 +6,12 @@ import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import edu.uky.cs405g.sample.Launcher;
 
-import javax.print.attribute.standard.Media;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.io.*;
 import java.lang.reflect.Type;
 import java.util.Map;
-import java.util.UUID;
 
 @Path("/api")
 public class API {
@@ -123,7 +121,6 @@ public class API {
     @Produces(MediaType.APPLICATION_JSON)
     public Response exampleBDATE(@PathParam("idnum") String idnum) {
         String responseString = "{\"status_code\":0}";
-        StringBuilder crunchifyBuilder = new StringBuilder();
         try {
             Map<String,String> teamMap = Launcher.dbEngine.getBDATE(idnum);
             responseString = Launcher.gson.toJson(teamMap);

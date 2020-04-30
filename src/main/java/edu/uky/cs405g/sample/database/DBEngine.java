@@ -2,16 +2,11 @@ package edu.uky.cs405g.sample.database;
 
 // Used with permission from Dr. Bumgardner
 
-import com.fasterxml.jackson.databind.node.IntNode;
 import org.apache.commons.dbcp2.*;
 import org.apache.commons.pool2.ObjectPool;
 import org.apache.commons.pool2.impl.GenericObjectPool;
 
 import javax.sql.DataSource;
-import javax.swing.plaf.nimbus.State;
-import javax.xml.transform.Result;
-import java.io.PrintWriter;
-import java.io.StringWriter;
 import java.sql.*;
 import java.util.*;
 
@@ -91,7 +86,7 @@ public class DBEngine {
     // Returns -10 if invalid credentials
     public int isCorrectCredentials(String handle, String password) {
         System.out.println("Checking user credentials...");
-        Integer userId = -10;
+        int userId = -10;
         PreparedStatement stmt = null;
 
         try {
@@ -125,7 +120,7 @@ public class DBEngine {
     // Returns 0 if user is not following
     public int doesUserFollow(Integer currUser, Integer follow) {
         System.out.println("Check to see if user is already following");
-        Integer follows = 0;
+        int follows = 0;
         PreparedStatement stmt = null;
 
         try {
@@ -159,7 +154,7 @@ public class DBEngine {
     // Returns 0 if story does not exist
     public int doesStoryExist(String sidnum) {
         System.out.println("Checking id story exists...");
-        Integer userId = 0;
+        int userId = 0;
         PreparedStatement stmt = null;
 
         try {
@@ -193,7 +188,7 @@ public class DBEngine {
     // Returns 0 if not blocked
     public int isUserBlocked(Integer blocker, Integer blocking) {
         System.out.println("Checking if current user is blocked...");
-        Integer isBlocked = 0;
+        int isBlocked = 0;
         PreparedStatement stmt = null;
 
         try {
@@ -265,7 +260,7 @@ public class DBEngine {
         Map<String,String> userIdMap = new HashMap<>();
 
         PreparedStatement stmt = null;
-        Integer id = Integer.parseInt(idnum);
+        int id = Integer.parseInt(idnum);
         try
         {
             Connection conn = ds.getConnection();
@@ -345,7 +340,7 @@ public class DBEngine {
 	Map<String,String> userIdMap = new LinkedHashMap<>();
 
     // See if current user even exists
-    Integer currUser = isCorrectCredentials(handle, password);
+    int currUser = isCorrectCredentials(handle, password);
     // If user does not exist, return the error
     if (currUser == -10) {
         userIdMap.put("status_code", Integer.toString(currUser));
@@ -353,7 +348,7 @@ public class DBEngine {
     }
 
     // See if current user is blocked by story publisher
-    Integer isBlocked = isUserBlocked(Integer.parseInt(idnum), currUser);
+    int isBlocked = isUserBlocked(Integer.parseInt(idnum), currUser);
     // if the user is blocked, return nothing (User cant see if blocked or doesn't exist)
     if (isBlocked == 1) {
         return userIdMap;
@@ -407,7 +402,7 @@ public class DBEngine {
         Map<String,String> userIdMap = new LinkedHashMap<>();
 
         // See if current user even exists
-        Integer currUser = isCorrectCredentials(handle, password);
+        int currUser = isCorrectCredentials(handle, password);
         // If user does not exist, return the error
         if (currUser == -10) {
             userIdMap.put("status_code", Integer.toString(currUser));
@@ -415,7 +410,7 @@ public class DBEngine {
             return userIdMap;
         }
         // See if story exists
-        Integer publisherId = doesStoryExist(sidnum);
+        int publisherId = doesStoryExist(sidnum);
         // If story does not exist, return the error
         if (publisherId == 0) {
             userIdMap.put("status_code", Integer.toString(publisherId));
@@ -423,7 +418,7 @@ public class DBEngine {
             return userIdMap;
         }
         // See if current user is blocked by story publisher
-        Integer isBlocked = isUserBlocked(publisherId, currUser);
+        int isBlocked = isUserBlocked(publisherId, currUser);
         // if the user is blocked, return the error
         if (isBlocked == 1) {
             userIdMap.put("status_code", "0");
@@ -436,7 +431,7 @@ public class DBEngine {
             // Create integer value for "likeit"
             // likeVal = 0 -> Retweet (false)
             // likeVal = 1 -> Like (true)
-            Integer likeVal = 0;
+            int likeVal = 0;
             if (likeit.equals("true")) {
                 likeVal = 1;
             }
@@ -454,7 +449,7 @@ public class DBEngine {
                 stmt.setString(3, Integer.toString(likeVal));
                 stmt.setString(4, sidnum);
 
-                Integer result = stmt.executeUpdate();
+                int result = stmt.executeUpdate();
 
                 if (result == 0) {
                     System.out.println("Failed to like story...");
@@ -479,7 +474,7 @@ public class DBEngine {
         Map<String,String> userIdMap = new LinkedHashMap<>();
 
         // See if current user even exists
-        Integer currUser = isCorrectCredentials(handle, password);
+        int currUser = isCorrectCredentials(handle, password);
         // If user does not exist, return the error
         if (currUser == -10) {
             userIdMap.put("status_code", Integer.toString(currUser));
@@ -507,7 +502,7 @@ public class DBEngine {
                 stmt.setString(3, url);
                 stmt.setString(4, expires);
 
-                Integer result = stmt.executeUpdate();
+                int result = stmt.executeUpdate();
 
                 if (result == 0) {
                     System.out.println("Failed to post story...");
@@ -540,7 +535,7 @@ public class DBEngine {
         Map<String,String> userIdMap = new LinkedHashMap<>();
 
         // See if current user even exists
-        Integer currUser = isCorrectCredentials(handle, password);
+        int currUser = isCorrectCredentials(handle, password);
         // If user does not exist, return the error
         if (currUser == -10) {
             userIdMap.put("status_code", Integer.toString(currUser));
@@ -548,7 +543,7 @@ public class DBEngine {
             return userIdMap;
         }
         // See if current user is blocked by followee
-        Integer isBlocked = isUserBlocked(Integer.parseInt(idnum), currUser);
+        int isBlocked = isUserBlocked(Integer.parseInt(idnum), currUser);
         // if the user is blocked, return the error
         if (isBlocked == 1) {
             userIdMap.put("status_code", "0");
@@ -556,7 +551,7 @@ public class DBEngine {
             return userIdMap;
         }
         // See if current user is blocked by followee
-        Integer follows = doesUserFollow(currUser, Integer.parseInt(idnum));
+        int follows = doesUserFollow(currUser, Integer.parseInt(idnum));
         // if the user is blocked, return the error
         if (follows == 1) {
             userIdMap.put("status_code", "0");
@@ -575,7 +570,7 @@ public class DBEngine {
                 stmt.setString(1, Integer.toString(currUser));
                 stmt.setString(2, idnum);
 
-                Integer result = stmt.executeUpdate();
+                int result = stmt.executeUpdate();
 
                 if (result == 0) {
                     System.out.println("Failed to follow user...");
@@ -604,7 +599,7 @@ public class DBEngine {
         Map<String,String> userIdMap = new LinkedHashMap<>();
 
         // See if current user even exists
-        Integer currUser = isCorrectCredentials(handle, password);
+        int currUser = isCorrectCredentials(handle, password);
         // If user does not exist, return the error
         if (currUser == -10) {
             userIdMap.put("status_code", Integer.toString(currUser));
@@ -624,7 +619,7 @@ public class DBEngine {
                 stmt.setString(1, Integer.toString(currUser));
                 stmt.setString(2, idnum);
 
-                Integer result = stmt.executeUpdate();
+                int result = stmt.executeUpdate();
 
                 if (result == 0) {
                     System.out.println("Failed to unfollow user...");
@@ -653,7 +648,7 @@ public class DBEngine {
         Map<String,String> userIdMap = new LinkedHashMap<>();
 
         // See if current user even exists
-        Integer currUser = isCorrectCredentials(handle, password);
+        int currUser = isCorrectCredentials(handle, password);
         // If user does not exist, return the error
         if (currUser == -10) {
             userIdMap.put("status_code", Integer.toString(currUser));
@@ -661,7 +656,7 @@ public class DBEngine {
             return userIdMap;
         }
         // See if current user is already blocking the new user
-        Integer isBlocked = isUserBlocked(currUser, Integer.parseInt(idnum));
+        int isBlocked = isUserBlocked(currUser, Integer.parseInt(idnum));
         // if the user is blocked, return the error
         if (isBlocked == 1) {
             userIdMap.put("status_code", "0");
@@ -681,7 +676,7 @@ public class DBEngine {
                 stmt.setString(1, Integer.toString(currUser));
                 stmt.setString(2, idnum);
 
-                Integer result = stmt.executeUpdate();
+                int result = stmt.executeUpdate();
 
                 if (result == 0) {
                     System.out.println("Failed to block user...");
@@ -710,7 +705,7 @@ public class DBEngine {
         Map<String,String> userIdMap = new LinkedHashMap<>();
 
         // See if current user even exists
-        Integer currUser = isCorrectCredentials(handle, password);
+        int currUser = isCorrectCredentials(handle, password);
         // If user does not exist, return the error
         if (currUser == -10) {
             userIdMap.put("status_code", Integer.toString(currUser));
@@ -746,7 +741,7 @@ public class DBEngine {
                 ResultSet rs = stmt.executeQuery();
 
                 rs.last();
-                Integer totalResults = rs.getRow();
+                int totalResults = rs.getRow();
                 rs.beforeFirst();
                 userIdMap.put("status", Integer.toString(totalResults));
 
@@ -782,7 +777,7 @@ public class DBEngine {
         Map<String,String> userIdMap = new LinkedHashMap<>();
 
         // See if current user even exists
-        Integer currUser = isCorrectCredentials(handle, password);
+        int currUser = isCorrectCredentials(handle, password);
         // If user does not exist, return the error
         if (currUser == -10) {
             userIdMap.put("status_code", Integer.toString(currUser));
