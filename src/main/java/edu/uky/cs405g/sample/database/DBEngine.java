@@ -89,7 +89,7 @@ public class DBEngine {
 
     // This will return the idnum of the current user
     // Returns -10 if invalid credentials
-    public int isCorrectCredentials(String handle, String pass) {
+    public int isCorrectCredentials(String handle, String password) {
         System.out.println("Checking user credentials...");
         Integer userId = -10;
         PreparedStatement stmt = null;
@@ -98,11 +98,11 @@ public class DBEngine {
             Connection conn = ds.getConnection();
             String queryString = null;
             // Query the DB to retrieve the id of the possible user
-            queryString = "SELECT idnum FROM Identity where handle = ? and pass = ?";
+            queryString = "SELECT idnum FROM Identity where handle = ? and password = ?";
             stmt = conn.prepareStatement(queryString);
 
             stmt.setString(1,handle);
-            stmt.setString(2, pass);
+            stmt.setString(2, password);
 
             ResultSet rs = stmt.executeQuery();
 
@@ -294,7 +294,7 @@ public class DBEngine {
         return userIdMap;
     } // getBDATE()
   
-    public Map<String,String> createuser(String handle, String pass, String fullname, String location, String xmail, String bdate){
+    public Map<String,String> createuser(String handle, String password, String fullname, String location, String xmail, String bdate){
         Map<String,String> userIdMap = new LinkedHashMap<>();
 
         PreparedStatement stmt = null;
@@ -302,11 +302,11 @@ public class DBEngine {
         {
             Connection conn = ds.getConnection();
             String queryString = null;
-            queryString = "INSERT INTO Identity (handle, pass, fullname, location, email, bdate) VALUES(?, ?, ?, ?, ?, ?)";
+            queryString = "INSERT INTO Identity (handle, password, fullname, location, email, bdate) VALUES(?, ?, ?, ?, ?, ?)";
 
             stmt = conn.prepareStatement(queryString, Statement.RETURN_GENERATED_KEYS);
 			stmt.setString(1, handle);
-			stmt.setString(2, pass);
+			stmt.setString(2, password);
 			stmt.setString(3, fullname);
 			stmt.setString(4, location);
 			stmt.setString(5, xmail);
@@ -475,11 +475,11 @@ public class DBEngine {
         return userIdMap;
     } // reprint()
 
-    public Map<String,String> poststory(String handle, String pass, String chapter, String url, String expires){
+    public Map<String,String> poststory(String handle, String password, String chapter, String url, String expires){
         Map<String,String> userIdMap = new LinkedHashMap<>();
 
         // See if current user even exists
-        Integer currUser = isCorrectCredentials(handle, pass);
+        Integer currUser = isCorrectCredentials(handle, password);
         // If user does not exist, return the error
         if (currUser == -10) {
             userIdMap.put("status_code", Integer.toString(currUser));
@@ -536,11 +536,11 @@ public class DBEngine {
         return userIdMap;
     } // poststory()
 
-    public Map<String,String> follow(String handle, String pass, String idnum){
+    public Map<String,String> follow(String handle, String password, String idnum){
         Map<String,String> userIdMap = new LinkedHashMap<>();
 
         // See if current user even exists
-        Integer currUser = isCorrectCredentials(handle, pass);
+        Integer currUser = isCorrectCredentials(handle, password);
         // If user does not exist, return the error
         if (currUser == -10) {
             userIdMap.put("status_code", Integer.toString(currUser));
@@ -600,11 +600,11 @@ public class DBEngine {
         return userIdMap;
     } // follow()
 
-    public Map<String,String> unfollow(String handle, String pass, String idnum){
+    public Map<String,String> unfollow(String handle, String password, String idnum){
         Map<String,String> userIdMap = new LinkedHashMap<>();
 
         // See if current user even exists
-        Integer currUser = isCorrectCredentials(handle, pass);
+        Integer currUser = isCorrectCredentials(handle, password);
         // If user does not exist, return the error
         if (currUser == -10) {
             userIdMap.put("status_code", Integer.toString(currUser));
@@ -649,11 +649,11 @@ public class DBEngine {
         return userIdMap;
     } // unfollow()
 
-    public Map<String,String> block(String handle, String pass, String idnum){
+    public Map<String,String> block(String handle, String password, String idnum){
         Map<String,String> userIdMap = new LinkedHashMap<>();
 
         // See if current user even exists
-        Integer currUser = isCorrectCredentials(handle, pass);
+        Integer currUser = isCorrectCredentials(handle, password);
         // If user does not exist, return the error
         if (currUser == -10) {
             userIdMap.put("status_code", Integer.toString(currUser));
@@ -706,11 +706,11 @@ public class DBEngine {
         return userIdMap;
     } // block()
 
-    public Map<String,String> suggestions(String handle, String pass){
+    public Map<String,String> suggestions(String handle, String password){
         Map<String,String> userIdMap = new LinkedHashMap<>();
 
         // See if current user even exists
-        Integer currUser = isCorrectCredentials(handle, pass);
+        Integer currUser = isCorrectCredentials(handle, password);
         // If user does not exist, return the error
         if (currUser == -10) {
             userIdMap.put("status_code", Integer.toString(currUser));
@@ -778,11 +778,11 @@ public class DBEngine {
         return userIdMap;
     } // suggestions()
 
-    public Map<String,String> timeline(String handle, String pass, String newest, String oldest){
+    public Map<String,String> timeline(String handle, String password, String newest, String oldest){
         Map<String,String> userIdMap = new LinkedHashMap<>();
 
         // See if current user even exists
-        Integer currUser = isCorrectCredentials(handle, pass);
+        Integer currUser = isCorrectCredentials(handle, password);
         // If user does not exist, return the error
         if (currUser == -10) {
             userIdMap.put("status_code", Integer.toString(currUser));

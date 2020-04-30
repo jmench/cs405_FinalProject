@@ -169,14 +169,14 @@ public class API {
 
             // Create strings to get values from the map
             String handle = myMap.get("handle");
-            String pass = myMap.get("password");
+            String password = myMap.get("password");
             String fullname = myMap.get("fullname");
             String location = myMap.get("location");
             String xmail = myMap.get("xmail");
             String bdate = myMap.get("bdate");
 
             // Call the function in DBEngine that adds to the databas
-            Map<String,String> teamMap = Launcher.dbEngine.createuser(handle, pass, fullname, location, xmail, bdate);
+            Map<String,String> teamMap = Launcher.dbEngine.createuser(handle, password, fullname, location, xmail, bdate);
             // Turn Map returned from DBEngine to JSON for output
             responseString = Launcher.gson.toJson(teamMap);
 
@@ -220,9 +220,9 @@ public class API {
 
             // Create strings to get values from the map
             String handle = myMap.get("handle");
-            String pass = myMap.get("password");
+            String password = myMap.get("password");
 
-            Map<String,String> teamMap = Launcher.dbEngine.seeuser(handle, pass, idnum);
+            Map<String,String> teamMap = Launcher.dbEngine.seeuser(handle, password, idnum);
             responseString = Launcher.gson.toJson(teamMap);
         } catch (Exception ex) {
             StringWriter sw = new StringWriter();
@@ -264,9 +264,9 @@ public class API {
 
             // Create strings to get values from the map
             String handle = myMap.get("handle");
-            String pass = myMap.get("password");
+            String password = myMap.get("password");
 
-            Map<String,String> teamMap = Launcher.dbEngine.suggestions(handle, pass);
+            Map<String,String> teamMap = Launcher.dbEngine.suggestions(handle, password);
             responseString = Launcher.gson.toJson(teamMap);
         } catch (Exception ex) {
             StringWriter sw = new StringWriter();
@@ -307,12 +307,12 @@ public class API {
 
             // Create strings to get values from the map
             String handle = myMap.get("handle");
-            String pass = myMap.get("password");
+            String password = myMap.get("password");
             String chapter = myMap.get("chapter");
             String url = myMap.get("url");
             String expires = myMap.get("expires");
 
-            Map<String,String> teamMap = Launcher.dbEngine.poststory(handle, pass, chapter, url, expires);
+            Map<String,String> teamMap = Launcher.dbEngine.poststory(handle, password, chapter, url, expires);
             responseString = Launcher.gson.toJson(teamMap);
         } catch (Exception ex) {
             StringWriter sw = new StringWriter();
@@ -353,9 +353,9 @@ public class API {
 
             // Create strings to get values from the map
             String handle = myMap.get("handle");
-            String pass = myMap.get("password");
+            String password = myMap.get("password");
             String likeit = myMap.get("likeit");
-            Map<String,String> teamMap = Launcher.dbEngine.reprint(handle, pass, likeit, sidnum);
+            Map<String,String> teamMap = Launcher.dbEngine.reprint(handle, password, likeit, sidnum);
             responseString = Launcher.gson.toJson(teamMap);
 
         } catch (Exception ex) {
@@ -395,9 +395,9 @@ public class API {
 
             // Create strings to get values from the map
             String handle = myMap.get("handle");
-            String pass = myMap.get("password");
+            String password = myMap.get("password");
 
-            Map<String,String> teamMap = Launcher.dbEngine.follow(handle, pass, idnum);
+            Map<String,String> teamMap = Launcher.dbEngine.follow(handle, password, idnum);
             responseString = Launcher.gson.toJson(teamMap);
         } catch (Exception ex) {
             StringWriter sw = new StringWriter();
@@ -435,9 +435,9 @@ public class API {
 
             // Create strings to get values from the map
             String handle = myMap.get("handle");
-            String pass = myMap.get("password");
+            String password = myMap.get("password");
 
-            Map<String,String> teamMap = Launcher.dbEngine.unfollow(handle, pass, idnum);
+            Map<String,String> teamMap = Launcher.dbEngine.unfollow(handle, password, idnum);
             responseString = Launcher.gson.toJson(teamMap);
         } catch (Exception ex) {
             StringWriter sw = new StringWriter();
@@ -476,9 +476,9 @@ public class API {
 
             // Create strings to get values from the map
             String handle = myMap.get("handle");
-            String pass = myMap.get("password");
+            String password = myMap.get("password");
 
-            Map<String,String> teamMap = Launcher.dbEngine.block(handle, pass, idnum);
+            Map<String,String> teamMap = Launcher.dbEngine.block(handle, password, idnum);
             responseString = Launcher.gson.toJson(teamMap);
         } catch (Exception ex) {
             StringWriter sw = new StringWriter();
@@ -533,11 +533,11 @@ public class API {
 
             // Create strings to get values from the map
             String handle = myMap.get("handle");
-            String pass = myMap.get("password");
+            String password = myMap.get("password");
             String newest = myMap.get("newest");
             String oldest = myMap.get("oldest");
 
-            Map<String,String> teamMap = Launcher.dbEngine.timeline(handle, pass, newest, oldest);
+            Map<String,String> teamMap = Launcher.dbEngine.timeline(handle, password, newest, oldest);
             responseString = Launcher.gson.toJson(teamMap);
         } catch (Exception ex) {
             StringWriter sw = new StringWriter();
