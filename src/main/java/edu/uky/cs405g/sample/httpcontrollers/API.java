@@ -1,3 +1,9 @@
+// Authors:
+// Jordan Menchen
+// Haleigh Snapp
+// Zac Foster
+// Will Watkins
+
 package edu.uky.cs405g.sample.httpcontrollers;
 //
 // Sample code used with permission from Dr. Bumgardner

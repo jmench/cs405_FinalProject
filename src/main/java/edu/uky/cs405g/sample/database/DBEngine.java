@@ -1,3 +1,9 @@
+// Authors:
+// Jordan Menchen
+// Haleigh Snapp
+// Zac Foster
+// Will Watkins
+
 package edu.uky.cs405g.sample.database;
 
 // Used with permission from Dr. Bumgardner
@@ -14,17 +20,17 @@ import java.util.*;
 public class DBEngine {
     private DataSource ds;
     public boolean isInit = false;
-    public DBEngine(String host, String database, String login, 
+    public DBEngine(String host, String database, String login,
 		String password) {
 
         try {
             Class.forName("com.mysql.cj.jdbc.Driver").newInstance();
             String dbConnectionString = null;
             if(database == null) {
-                dbConnectionString ="jdbc:mysql://" + host + "?" 
-					+"user=" + login  +"&password=" + password 
+                dbConnectionString ="jdbc:mysql://" + host + "?"
+					+"user=" + login  +"&password=" + password
 					+"&useUnicode=true&useJDBCCompliantTimezoneShift=true"
-					+"&useLegacyDatetimeCode=false&serverTimezone=UTC"; 
+					+"&useLegacyDatetimeCode=false&serverTimezone=UTC";
 			} else {
                 dbConnectionString ="jdbc:mysql://" + host + "/" + database
 				+ "?" + "user=" + login  +"&password=" + password
@@ -48,7 +54,7 @@ public class DBEngine {
         // arguments.
         //
         ConnectionFactory connectionFactory = null;
-            connectionFactory = 
+            connectionFactory =
 				new DriverManagerConnectionFactory(connectURI, null);
         //
         // Next we'll create the PoolableConnectionFactory, which wraps
@@ -267,7 +273,7 @@ public class DBEngine {
             String queryString = null;
 // Here is a statement, but we want a prepared statement.
 //            queryString = "SELECT bdate FROM Identity WHERE idnum = "+id;
-//            
+//
             queryString = "SELECT bdate FROM Identity WHERE idnum = ?";
 // ? is a parameter placeholder
             stmt = conn.prepareStatement(queryString);
@@ -288,7 +294,7 @@ public class DBEngine {
         }
         return userIdMap;
     } // getBDATE()
-  
+
     public Map<String,String> createuser(String handle, String password, String fullname, String location, String xmail, String bdate){
         Map<String,String> userIdMap = new LinkedHashMap<>();
 
@@ -309,17 +315,11 @@ public class DBEngine {
 
 			int result = stmt.executeUpdate();
 
-			if (result == 0) {
-			    System.out.println("Failed to create user...");
-                userIdMap.put("status", "-2");
-                userIdMap.put("error", "SQL Constraint Exception");
-			}
-
-			try (ResultSet userId = stmt.getGeneratedKeys()) {
-			    if(userId.next()) {
-			        System.out.println("Creating new user with idnum: " + Integer.toString(userId.getInt(1)));
-			        String idNum = String.valueOf(userId.getInt(1));
-			        userIdMap.put("status", idNum);
+            try (ResultSet userId = stmt.getGeneratedKeys()) {
+                if(userId.next()) {
+                    System.out.println("Creating new user with idnum: " + Integer.toString(userId.getInt(1)));
+                    String idNum = String.valueOf(userId.getInt(1));
+                    userIdMap.put("status", idNum);
                 }
             }
 
@@ -335,7 +335,7 @@ public class DBEngine {
 	    }
 	    return userIdMap;
     } // createuser()
-	
+
     public Map<String,String> seeuser(String handle, String password, String idnum){
 	Map<String,String> userIdMap = new LinkedHashMap<>();
 
@@ -347,12 +347,6 @@ public class DBEngine {
         userIdMap.put("error", "invalid credentials");
     }
 
-    // See if current user is blocked by story publisher
-    int isBlocked = isUserBlocked(Integer.parseInt(idnum), currUser);
-    // if the user is blocked, return nothing (User cant see if blocked or doesn't exist)
-    if (isBlocked == 1) {
-        return userIdMap;
-    }
     // Else attempt to fetch specified idnum info
     else {
         System.out.println("Printing user info at specified idnum...");
@@ -363,9 +357,12 @@ public class DBEngine {
             Connection conn = ds.getConnection();
             String queryString = null;
             // Get all information of user with idnum
-            queryString = "SELECT handle, fullname, location, email, bdate, joined FROM Identity WHERE idnum = ?";
+            queryString = "SELECT handle, fullname, location, email, bdate, joined FROM Identity WHERE idnum=? and" +
+                    " idnum not in (select idnum from Block where idnum = ? and blocked = ?);";
             stmt = conn.prepareStatement(queryString);
             stmt.setString(1, idnum);
+            stmt.setString(2, idnum);
+            stmt.setInt(3, currUser);
 
             ResultSet rs = stmt.executeQuery();
 
@@ -410,10 +407,11 @@ public class DBEngine {
             return userIdMap;
         }
         // See if story exists
+        // First get the idnum of the publisher
         int publisherId = doesStoryExist(sidnum);
         // If story does not exist, return the error
         if (publisherId == 0) {
-            userIdMap.put("status_code", Integer.toString(publisherId));
+            userIdMap.put("status_code", "0");
             userIdMap.put("error", "story not found");
             return userIdMap;
         }
@@ -451,20 +449,16 @@ public class DBEngine {
 
                 int result = stmt.executeUpdate();
 
-                if (result == 0) {
-                    System.out.println("Failed to like story...");
-                    userIdMap.put("status", "-2");
-                    userIdMap.put("error", "SQL Constraint Exception");
-                } else {
-                    System.out.println("Successfully reprinted story!");
-                    userIdMap.put("status", "1");
-                }
+                System.out.println("Successfully reprinted story!");
+                userIdMap.put("status", Integer.toString(result));
 
                 stmt.close();
                 conn.close();
             }
             catch(Exception ex) {
                 ex.printStackTrace();
+                userIdMap.put("status", "-2");
+                userIdMap.put("error", "SQL Constraint Exception");
             }
         }
         return userIdMap;
@@ -482,12 +476,6 @@ public class DBEngine {
             return userIdMap;
         }
 
-        //See if chapter is empty
-        if (chapter == null) {
-            userIdMap.put("status", "0");
-            userIdMap.put("error", "missing chapter");
-            return userIdMap;
-        }
         else {
             PreparedStatement stmt = null;
             try
@@ -504,14 +492,8 @@ public class DBEngine {
 
                 int result = stmt.executeUpdate();
 
-                if (result == 0) {
-                    System.out.println("Failed to post story...");
-                    userIdMap.put("status", "-2");
-                    userIdMap.put("error", "SQL Constraint Exception");
-                } else {
-                    System.out.println("Successfully posted story!");
-                    userIdMap.put("status", "1");
-                }
+                System.out.println("Successfully posted story!");
+                userIdMap.put("status", Integer.toString(result));
 
                 stmt.close();
                 conn.close();
@@ -519,9 +501,18 @@ public class DBEngine {
             catch(Exception ex)
             {
                 ex.printStackTrace();
-                System.out.println("Failed to post story...");
-                userIdMap.put("status", "0");
-                userIdMap.put("error", "invalid expires date");
+                if (ex.getMessage().contains("chapter")) {
+                    System.out.println("Failed to post story...");
+                    userIdMap.put("status", "0");
+                    userIdMap.put("error", "missing chapter");
+                } else if (ex.getMessage().contains("expires")) {
+                    System.out.println("Failed to post story...");
+                    userIdMap.put("status", "0");
+                    userIdMap.put("error", "invalid expires date");
+                } else {
+                    userIdMap.put("status", "-2");
+                    userIdMap.put("error", "SQL Constraint Exception");
+                }
             }
         }
         return userIdMap;
@@ -546,9 +537,10 @@ public class DBEngine {
             userIdMap.put("error", "blocked");
             return userIdMap;
         }
-        // See if current user is blocked by followee
+
+        // See if current user already follows
         int follows = doesUserFollow(currUser, Integer.parseInt(idnum));
-        // if the user is blocked, return the error
+        // if the user is already followed, return the error
         if (follows == 1) {
             userIdMap.put("status_code", "0");
             userIdMap.put("error", "user already followed");
@@ -568,14 +560,8 @@ public class DBEngine {
 
                 int result = stmt.executeUpdate();
 
-                if (result == 0) {
-                    System.out.println("Failed to follow user...");
-                    userIdMap.put("status", "0");
-                    userIdMap.put("error", "User already being followed");
-                } else {
-                    System.out.println("Successfully followed user!");
-                    userIdMap.put("status", "1");
-                }
+                System.out.println("Successfully followed user!");
+                userIdMap.put("status", Integer.toString(result));
 
                 stmt.close();
                 conn.close();
@@ -583,9 +569,15 @@ public class DBEngine {
             catch(Exception ex)
             {
                 ex.printStackTrace();
-                System.out.println("Failed to follow user...");
-                userIdMap.put("status", "0");
-                userIdMap.put("error", "user does not exist");
+                if (ex.getMessage().contains("foreign key")) {
+                    System.out.println("Failed to follow user...");
+                    userIdMap.put("status", "0");
+                    userIdMap.put("error", "user does not exist");
+                } else {
+                    System.out.println("Failed to follow user...");
+                    userIdMap.put("status", "0");
+                    userIdMap.put("error", "User already being followed");
+                }
             }
         }
         return userIdMap;
@@ -620,7 +612,7 @@ public class DBEngine {
                 if (result == 0) {
                     System.out.println("Failed to unfollow user...");
                     userIdMap.put("status", "0");
-                    userIdMap.put("error", "Not following user");
+                    userIdMap.put("error", "Not currently followed");
                 } else {
                     System.out.println("Successfully followed user!");
                     userIdMap.put("status", "1");
@@ -633,8 +625,8 @@ public class DBEngine {
             {
                 ex.printStackTrace();
                 System.out.println("Failed to unfollow user...");
-                userIdMap.put("status", "0");
-                userIdMap.put("error", "user does not exist");
+                userIdMap.put("status", "-2");
+                userIdMap.put("error", "SQL Constraint Exception");
             }
         }
         return userIdMap;
@@ -690,8 +682,8 @@ public class DBEngine {
             {
                 ex.printStackTrace();
                 System.out.println("Failed to block user...");
-                userIdMap.put("status", "0");
-                userIdMap.put("error", "user does not exist");
+                userIdMap.put("status", "-2");
+                userIdMap.put("error", "SQL Constraint Exception");
             }
         }
         return userIdMap;
@@ -794,21 +786,54 @@ public class DBEngine {
             {
                 Connection conn = ds.getConnection();
                 String queryString = null;
-                queryString = "SELECT followers, tstamp FROM Follows F UNION ALL SELECT sidnum, tstamp FROM Reprint R " +
-                        "EXCEPT (SELECT sidnum, expires from Story WHERE (expires < ?)) ORDER BY R.tstamp";
+                queryString = "select \"Story\" as type, i1.handle author, s1.sidnum, s1.chapter, s1.tstamp posted from" +
+                        " Story as s1, Identity as i1 where ((s1.tstamp < ?) and (s1.tstamp > ?)) and s1.idnum in" +
+                        "  (select f1.followed from Follows as f1" +
+                        "    where f1.follower = ?) and i1.idnum = s1.idnum" +
+                        "  union" +
+                        "  select \"Reprint\" as type, i2.handle author, s2.sidnum, s2.chapter, s2.tstamp posted from Story as s2, Identity as i2" +
+                        "    where s2.sidnum in " +
+                        "    (select r1.sidnum from Reprint as r1 where r1.likeit = 0 and " +
+                        "    ((r1.tstamp < ?) and (r1.tstamp > ?))" +
+                        "    and idnum in (select f2.followed from Follows as f2 where f2.follower = 9)) and s2.idnum not in" +
+                        "    (select b1.blocked from Block as b1 where b1.idnum = ?) and i2.idnum = s2.idnum;";
 
                 stmt = conn.prepareStatement(queryString);
-                stmt.setString(1, oldest);
+                stmt.setString(1, newest);
+                stmt.setString(2, oldest);
+                stmt.setInt(3, currUser);
+                stmt.setString(4, newest);
+                stmt.setString(5, oldest);
+                stmt.setInt(6, currUser);
 
                 ResultSet rs = stmt.executeQuery();
 
-                // Place all user info into Map to return to API
+                rs.last();
+                int totalResults = rs.getRow();
+                rs.beforeFirst();
+
                 while (rs.next()) {
-                    System.out.println("reading timeline");
+                    ArrayList<String> tl = new ArrayList<String>();
+
+                    tl.add("{\"type\":\"" + rs.getString("type") + "\"");
+                    tl.add("\"author\":\"" + rs.getString("author") + "\"");
+                    tl.add("\"sidnum\":\"" + Integer.toString(rs.getInt("sidnum")) + "\"");
+                    tl.add("\"chapter\":\"" + rs.getString("chapter") + "\"");
+                    tl.add("\"posted\":\"" + rs.getString("posted") + "\"}");
+
+                    String userTL = String.join(",", tl);
+
+                    userIdMap.put(Integer.toString(rs.getRow() - 1), userTL);
                 }
+
+                userIdMap.put("status", Integer.toString(totalResults));
+
                 rs.close();
                 stmt.close();
                 conn.close();
+
+                userIdMap.put("status", Integer.toString(totalResults));
+
             }
             catch(Exception ex)
             {
